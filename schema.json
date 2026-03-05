@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Claudeloop Interaction Log Entry",
+  "description": "A single interaction log entry captured by claudeloop hooks",
+  "type": "object",
+  "required": ["timestamp", "event_type", "session_id"],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of the event"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": ["prompt", "ask_response", "tool_denial", "turn_end"],
+      "description": "Type of interaction event"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Claude Code session UUID"
+    },
+    "project_dir": {
+      "type": "string",
+      "description": "Project root directory (from workspace.project_dir)"
+    },
+    "cwd": {
+      "type": "string",
+      "description": "Current working directory at time of event"
+    },
+    "prompt": {
+      "type": "string",
+      "description": "User's typed prompt text (event_type=prompt only)"
+    },
+    "question": {
+      "type": "string",
+      "description": "Question Claude asked (event_type=ask_response only)"
+    },
+    "answer": {
+      "type": "string",
+      "description": "User's answer to the question (event_type=ask_response only)"
+    },
+    "denied_tool": {
+      "type": "string",
+      "description": "Name of the denied tool (event_type=tool_denial only)"
+    },
+    "denied_input": {
+      "type": "object",
+      "description": "Tool input that was denied, truncated to 500 chars (event_type=tool_denial only)"
+    },
+    "denial_reason": {
+      "type": "string",
+      "description": "Error text from the denial (event_type=tool_denial only)"
+    },
+    "is_interrupt": {
+      "type": "boolean",
+      "description": "Whether the denial was a user interrupt (event_type=tool_denial only)"
+    },
+    "model": {
+      "type": "string",
+      "description": "Model ID used for this turn (event_type=turn_end only)"
+    },
+    "token_usage": {
+      "type": "object",
+      "description": "Best-effort token usage for this turn (event_type=turn_end only)",
+      "properties": {
+        "input_tokens": { "type": "integer" },
+        "output_tokens": { "type": "integer" },
+        "cache_read_input_tokens": { "type": "integer" },
+        "cache_creation_input_tokens": { "type": "integer" }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Auto-detected tags for categorization"
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "event_type": { "const": "prompt" } } },
+      "then": { "required": ["prompt"] }
+    },
+    {
+      "if": { "properties": { "event_type": { "const": "ask_response" } } },
+      "then": { "required": ["question", "answer"] }
+    },
+    {
+      "if": { "properties": { "event_type": { "const": "tool_denial" } } },
+      "then": { "required": ["denied_tool"] }
+    }
+  ]
+}

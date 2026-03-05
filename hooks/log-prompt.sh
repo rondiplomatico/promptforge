@@ -1,0 +1,81 @@
+#!/bin/bash
+# claudeloop hook: UserPromptSubmit → JSONL
+# Captures user prompts with auto-tagging
+set -e
+
+# --- Shared log directory resolution ---
+resolve_log_dir() {
+  local project_dir
+  project_dir=$(echo "$INPUT" | jq -r '.workspace.project_dir // empty')
+  if [ -n "$project_dir" ] && [ -d "$project_dir/.claude/claudeloop/logs" ]; then
+    echo "$project_dir/.claude/claudeloop/logs"
+  elif [ -d "$HOME/.claude/claudeloop/logs" ]; then
+    echo "$HOME/.claude/claudeloop/logs"
+  else
+    mkdir -p "$HOME/.claude/claudeloop/logs"
+    echo "$HOME/.claude/claudeloop/logs"
+  fi
+}
+
+# --- Auto-tagging ---
+auto_tag() {
+  local prompt="$1"
+  local tags=()
+
+  # BMAD agent invocation
+  if [[ "$prompt" =~ ^/BMad:agents:([a-zA-Z_-]+) ]]; then
+    tags+=("bmad" "bmad:${BASH_REMATCH[1]}")
+  elif [[ "$prompt" =~ ^/BMad:tasks:([a-zA-Z_-]+) ]]; then
+    tags+=("bmad" "bmad_task:${BASH_REMATCH[1]}")
+  fi
+
+  # Slash command
+  if [[ "$prompt" =~ ^/ ]]; then
+    tags+=("slash_command")
+  fi
+
+  # Planning indicators
+  if [[ "$prompt" =~ (plan[[:space:]]mode|planning|/plan|enter[[:space:]]plan) ]]; then
+    tags+=("planning")
+  fi
+
+  # Testing
+  if [[ "$prompt" =~ (test|pytest|verify|spec[[:space:]]) ]]; then
+    tags+=("testing")
+  fi
+
+  # Git operations
+  if [[ "$prompt" =~ (commit|push|pull[[:space:]]request|merge|pr[[:space:]]) ]]; then
+    tags+=("git_ops")
+  fi
+
+  # Output as JSON array
+  printf '%s\n' "${tags[@]}" | jq -R . | jq -s .
+}
+
+# --- Main ---
+INPUT=$(cat)
+
+LOG_DIR=$(resolve_log_dir)
+LOG_FILE="$LOG_DIR/$(date +%Y-%m-%d).jsonl"
+
+PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty')
+SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty')
+CWD=$(echo "$INPUT" | jq -r '.cwd // empty')
+PROJECT_DIR=$(echo "$INPUT" | jq -r '.workspace.project_dir // empty')
+TIMESTAMP=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+
+TAGS=$(auto_tag "$PROMPT")
+
+jq -n -c \
+  --arg ts "$TIMESTAMP" \
+  --arg et "prompt" \
+  --arg sid "$SESSION_ID" \
+  --arg pd "$PROJECT_DIR" \
+  --arg cwd "$CWD" \
+  --arg prompt "$PROMPT" \
+  --argjson tags "$TAGS" \
+  '{timestamp: $ts, event_type: $et, session_id: $sid, project_dir: $pd, cwd: $cwd, prompt: $prompt, tags: $tags}' \
+  >> "$LOG_FILE"
+
+exit 0
