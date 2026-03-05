@@ -1,12 +1,12 @@
 # Analyze Usage Behavior
 
-Analyze my Claude Code usage patterns from claudeloop interaction logs.
+Analyze my Claude Code usage patterns from promptforge interaction logs.
 
 ## Data Source
 
 Read all JSONL files from:
-1. `~/.claude/claudeloop/logs/*.jsonl` (global logs)
-2. If inside a project: `$CLAUDE_PROJECT_DIR/.claude/claudeloop/logs/*.jsonl` (project logs)
+1. `~/.claude/promptforge/logs/*.jsonl` (global logs)
+2. If inside a project: `$CLAUDE_PROJECT_DIR/.claude/promptforge/logs/*.jsonl` (project logs)
 
 Each line is a JSON object with fields: `timestamp`, `event_type` (prompt|ask_response|tool_denial|turn_end), `session_id`, `project_dir`, `cwd`, `prompt`, `question`, `answer`, `denied_tool`, `tags`, `model`, `token_usage`.
 

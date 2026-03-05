@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Claudeloop Interaction Log Entry",
-  "description": "A single interaction log entry captured by claudeloop hooks",
+  "title": "PromptForge Interaction Log Entry",
+  "description": "A single interaction log entry captured by promptforge hooks",
   "type": "object",
   "required": ["timestamp", "event_type", "session_id"],
   "properties": {

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-claudeloop: extract_friction.py
-Pre-filter and aggregate friction signals from claudeloop logs.
+promptforge: extract_friction.py
+Pre-filter and aggregate friction signals from promptforge logs.
 Reduces the data volume that Claude needs to process for friction analysis.
 """
 
@@ -208,11 +208,11 @@ def analyze_correction_chains(entries):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Pre-filter friction signals from claudeloop logs")
-    parser.add_argument("--logs-dir", default=os.path.expanduser("~/.claude/claudeloop/logs/"),
+    parser = argparse.ArgumentParser(description="Pre-filter friction signals from promptforge logs")
+    parser.add_argument("--logs-dir", default=os.path.expanduser("~/.claude/promptforge/logs/"),
                         help="Logs directory")
     parser.add_argument("--project-logs-dir", help="Additional project-specific logs directory")
-    parser.add_argument("--output", default="/tmp/claudeloop-friction-data.json",
+    parser.add_argument("--output", default="/tmp/promptforge-friction-data.json",
                         help="Output JSON file")
     args = parser.parse_args()
 

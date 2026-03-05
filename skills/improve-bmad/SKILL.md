@@ -1,15 +1,15 @@
 # Skill: Improve BMAD Configuration
 
 ## Description
-Uses claudeloop friction analysis to suggest improvements to BMAD agents, tasks, checklists, and core configuration. Spawns a task agent to gather context without flooding the main conversation.
+Uses promptforge friction analysis to suggest improvements to BMAD agents, tasks, checklists, and core configuration. Spawns a task agent to gather context without flooding the main conversation.
 
 ## Trigger
-When user runs `/claudeloop:improve-bmad` or asks to improve their BMAD setup based on friction analysis.
+When user runs `/promptforge:improve-bmad` or asks to improve their BMAD setup based on friction analysis.
 
 ## Steps
 
 1. **Check for Friction Report**:
-   Look for `.claude/claudeloop/friction-report.md`. If it doesn't exist, inform the user to run `/claudeloop:analyze-corrections` first.
+   Look for `.claude/promptforge/friction-report.md`. If it doesn't exist, inform the user to run `/promptforge:analyze-corrections` first.
 
 2. **Identify BMAD-related friction**:
    Read the friction report and filter for patterns tagged with `bmad`, `bmad:<agent>`, or `bmad_task:<task>`.

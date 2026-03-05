@@ -1,15 +1,15 @@
 # Improve Project Configuration
 
-Use claudeloop friction analysis to suggest improvements to CLAUDE.md, permissions, and memory files.
+Use promptforge friction analysis to suggest improvements to CLAUDE.md, permissions, and memory files.
 
 ## Prerequisites
 
-This command works best after running `/claudeloop:analyze-corrections` to generate a Friction Report. If no friction report exists at `.claude/claudeloop/friction-report.md`, run the analysis first.
+This command works best after running `/promptforge:analyze-corrections` to generate a Friction Report. If no friction report exists at `.claude/promptforge/friction-report.md`, run the analysis first.
 
 ## Data Sources
 
-1. **Friction Report**: `.claude/claudeloop/friction-report.md`
-2. **Claudeloop logs**: `~/.claude/claudeloop/logs/*.jsonl` and project logs
+1. **Friction Report**: `.claude/promptforge/friction-report.md`
+2. **PromptForge logs**: `~/.claude/promptforge/logs/*.jsonl` and project logs
 3. **Current config** (read via task agent to avoid context flooding):
    - `CLAUDE.md`
    - `.claude/settings.json` (permissions section)
@@ -25,7 +25,7 @@ Spawn a task agent to read and summarize:
 Ask the agent to return a condensed summary of: key instructions, permission patterns, and stored preferences.
 
 ### Step 2: Read Friction Report
-Read `.claude/claudeloop/friction-report.md` for the top friction patterns.
+Read `.claude/promptforge/friction-report.md` for the top friction patterns.
 
 ### Step 3: Cross-Reference
 For each friction pattern, determine:

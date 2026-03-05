@@ -1,5 +1,5 @@
 #!/bin/bash
-# claudeloop hook: Stop → JSONL
+# promptforge hook: Stop → JSONL
 # Captures turn-end metadata including model and best-effort token usage
 set -e
 
@@ -7,13 +7,13 @@ set -e
 resolve_log_dir() {
   local project_dir
   project_dir=$(echo "$INPUT" | jq -r '.workspace.project_dir // empty')
-  if [ -n "$project_dir" ] && [ -d "$project_dir/.claude/claudeloop/logs" ]; then
-    echo "$project_dir/.claude/claudeloop/logs"
-  elif [ -d "$HOME/.claude/claudeloop/logs" ]; then
-    echo "$HOME/.claude/claudeloop/logs"
+  if [ -n "$project_dir" ] && [ -d "$project_dir/.claude/promptforge/logs" ]; then
+    echo "$project_dir/.claude/promptforge/logs"
+  elif [ -d "$HOME/.claude/promptforge/logs" ]; then
+    echo "$HOME/.claude/promptforge/logs"
   else
-    mkdir -p "$HOME/.claude/claudeloop/logs"
-    echo "$HOME/.claude/claudeloop/logs"
+    mkdir -p "$HOME/.claude/promptforge/logs"
+    echo "$HOME/.claude/promptforge/logs"
   fi
 }
 
@@ -47,7 +47,7 @@ extract_token_usage() {
 INPUT=$(cat)
 
 # Debug dump on first run
-DEBUG_FILE="/tmp/claudeloop-stop-debug.json"
+DEBUG_FILE="/tmp/promptforge-stop-debug.json"
 if [ ! -f "$DEBUG_FILE" ]; then
   echo "$INPUT" > "$DEBUG_FILE"
 fi

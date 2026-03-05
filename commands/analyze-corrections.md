@@ -1,12 +1,12 @@
 # Analyze Corrections and Friction
 
-Scan claudeloop interaction logs for patterns of corrections, negations, contradictions, and repeated friction points.
+Scan promptforge interaction logs for patterns of corrections, negations, contradictions, and repeated friction points.
 
 ## Data Source
 
 Read all JSONL files from:
-1. `~/.claude/claudeloop/logs/*.jsonl` (global logs)
-2. If inside a project: `$CLAUDE_PROJECT_DIR/.claude/claudeloop/logs/*.jsonl` (project logs)
+1. `~/.claude/promptforge/logs/*.jsonl` (global logs)
+2. If inside a project: `$CLAUDE_PROJECT_DIR/.claude/promptforge/logs/*.jsonl` (project logs)
 
 ## Analysis
 
@@ -37,7 +37,7 @@ Within each session (group by session_id, order by timestamp):
 
 ## Output
 
-Write a **Friction Report** to `.claude/claudeloop/friction-report.md` containing:
+Write a **Friction Report** to `.claude/promptforge/friction-report.md` containing:
 
 1. **Top 10 Friction Patterns** ranked by frequency
 2. For each pattern:

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-claudeloop: extract-sessions.py
+promptforge: extract-sessions.py
 Retroactive extraction of user interactions from Claude Code session JSONL files
-and old text-format prompt logs into claudeloop JSONL format.
+and old text-format prompt logs into promptforge JSONL format.
 """
 
 import argparse
@@ -326,8 +326,8 @@ def main():
     parser.add_argument("--since", help="Only process sessions after this date (YYYY-MM-DD)")
     parser.add_argument("--project", help="Filter by project directory name substring")
     parser.add_argument("--include-old-logs", action="store_true", help="Also convert ~/.claude/prompt-logs/*.log")
-    parser.add_argument("--output", default=os.path.expanduser("~/.claude/claudeloop/logs/"),
-                        help="Output directory (default: ~/.claude/claudeloop/logs/)")
+    parser.add_argument("--output", default=os.path.expanduser("~/.claude/promptforge/logs/"),
+                        help="Output directory (default: ~/.claude/promptforge/logs/)")
     args = parser.parse_args()
 
     since_date = None

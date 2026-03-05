@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-claudeloop: validate-logs.py
-Validates JSONL log files against the claudeloop schema.
+promptforge: validate-logs.py
+Validates JSONL log files against the promptforge schema.
 """
 
 import json
@@ -77,7 +77,7 @@ def validate_file(filepath):
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="Validate claudeloop JSONL log files")
+    parser = argparse.ArgumentParser(description="Validate promptforge JSONL log files")
     parser.add_argument("paths", nargs="*", help="Log files or directories to validate")
     parser.add_argument("--quiet", "-q", action="store_true", help="Only show errors")
     args = parser.parse_args()
@@ -86,12 +86,12 @@ def main():
     paths = args.paths
     if not paths:
         default_dirs = [
-            Path.home() / ".claude" / "claudeloop" / "logs",
+            Path.home() / ".claude" / "promptforge" / "logs",
         ]
         # Also check CLAUDE_PROJECT_DIR if set
         proj_dir = os.environ.get("CLAUDE_PROJECT_DIR")
         if proj_dir:
-            default_dirs.append(Path(proj_dir) / ".claude" / "claudeloop" / "logs")
+            default_dirs.append(Path(proj_dir) / ".claude" / "promptforge" / "logs")
         paths = [str(d) for d in default_dirs if d.exists()]
 
     if not paths:
