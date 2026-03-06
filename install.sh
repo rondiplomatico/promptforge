@@ -138,6 +138,25 @@ done
 printf '%s\n' "${MANIFEST_FILES[@]}" > "$TARGET_CLAUDE_DIR/promptforge/install.manifest"
 echo "  Written  $TARGET_CLAUDE_DIR/promptforge/install.manifest (${#MANIFEST_FILES[@]} entries)"
 
+# --- Write setup.yaml ---
+case "$TARGET_CHOICE" in
+  g) SCOPE="global" ;;
+  *) SCOPE="project" ;;
+esac
+
+{
+  echo "# Written by promptforge installer"
+  echo "scope: $SCOPE"
+  echo "install_mode: $INSTALL_MODE"
+  echo "source: $REPO_DIR"
+  echo "installed: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo "manifest:"
+  for f in "${MANIFEST_FILES[@]}"; do
+    echo "  - $f"
+  done
+} > "$TARGET_CLAUDE_DIR/promptforge/setup.yaml"
+echo "  Written  $TARGET_CLAUDE_DIR/promptforge/setup.yaml"
+
 # --- Update settings.json with hook entries ---
 SETTINGS_FILE="$TARGET_CLAUDE_DIR/settings.json"
 

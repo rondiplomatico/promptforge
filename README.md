@@ -13,36 +13,48 @@ A self-improvement toolkit for Claude Code. Captures user interactions (prompts,
 
 Both scripts prompt for the target: global (`~/.claude/`), a project path, or the current directory. Install supports **symlink** mode (auto-updates on `git pull`) or **copy** mode. Run install multiple times for different targets.
 
-The installer writes an `install.manifest` used by the uninstaller for clean removal. Uninstall also checks for user-added files and optionally preserves log data.
+The installer writes an `install.manifest` and a `setup.yaml` (scope, mode, source, manifest metadata) used by commands and the uninstaller. Uninstall also checks for user-added files and optionally preserves log data.
 
 **Updating** (symlink mode): `git pull` in the promptforge repo. Copy mode: re-run `./install.sh`.
+
+## Scope Selection
+
+For **global installs**, each promptforge command asks whether to run in **project** or **global** scope:
+
+- **Project scope**: analyzes only log entries from the current project and targets project-local config (`CLAUDE.md`, `.claude/settings.json`, project memory)
+- **Global scope**: analyzes all log entries across projects and targets global config (`~/.claude/CLAUDE.md`, `~/.claude/settings.json`, `~/.claude/memory/`)
+
+For **project-local installs**, project scope is used automatically — no question is asked.
+
+The scope is detected from `setup.yaml` (written at install time), so no Bash/readlink tool use is needed.
 
 ## How to Use
 
 ### `/promptforge:analyze-usage` — Usage Report
 
-Generates a report on interaction volume, activity distribution, token usage, time patterns, and project breakdown.
+Generates a report on interaction volume, activity distribution, token usage, time patterns, and project breakdown. Scope-aware: in project scope, only entries from the current project are included.
 
 ```bash
 # Or run the script directly with options:
 python3 scripts/analyze-usage.py --since 2026-01-01 --format markdown --output report.md
+python3 scripts/analyze-usage.py --project-filter /path/to/project --format markdown
 ```
 
 ### `/promptforge:analyze-corrections` — Friction Analysis
 
-Detects friction patterns: repeated clarifications, tool denials, negation language, contradictions, and correction chains. Writes a Friction Report to `.claude/promptforge/friction-report.md`.
+Detects friction patterns: repeated clarifications, tool denials, negation language, contradictions, and correction chains. Writes a Friction Report to the scope-appropriate location (project: `<project>/.claude/promptforge/friction-report.md`, global: `~/.claude/promptforge/friction-report.md`).
 
 Uses `skills/analyze-corrections/extract_friction.py` to pre-aggregate signals, reducing context load for analysis.
 
 ### `/promptforge:improve-project` — Project Config Improvements
 
-Reads the Friction Report (from analyze-corrections) and cross-references it with your current CLAUDE.md, `.claude/settings.json` permissions, and memory files. Suggests specific additions or clarifications ranked by priority.
+Reads the Friction Report (from analyze-corrections) and cross-references it with your current config. In project scope, targets `CLAUDE.md`, `.claude/settings.json`, and project memory. In global scope, targets `~/.claude/CLAUDE.md`, `~/.claude/settings.json`, and `~/.claude/memory/`.
 
 **Requires**: Run `analyze-corrections` first to generate the friction report.
 
 ### `/promptforge:improve-bmad` — BMAD Config Improvements
 
-Filters friction patterns for BMAD-related items and cross-references with your `.bmad-core/` agents, tasks, and checklists. Suggests defaults, template additions, and checklist adjustments.
+Filters friction patterns for BMAD-related items and cross-references with your `.bmad-core/` agents, tasks, and checklists. Suggests defaults, template additions, and checklist adjustments. Only works in project scope (BMAD is project-local).
 
 **Requires**: Run `analyze-corrections` first. Only useful if you use BMAD.
 

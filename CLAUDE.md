@@ -41,7 +41,7 @@ JSONL with required fields: `timestamp` (ISO 8601 UTC), `event_type`, `session_i
 - `extract-sessions.py` — backfills logs from Claude Code session transcripts
 - `validate-logs.py` — validates JSONL against schema
 
-All support `--logs-dir` (repeatable), `--since`, auto-discover log directories.
+All support `--logs-dir` (repeatable), `--since`, auto-discover log directories. `analyze-usage.py` and `extract_friction.py` also support `--project-filter DIR` to restrict analysis to entries from a specific project.
 
 ### Skills & Commands
 Commands (`commands/*.md`) are user-facing slash command docs. Skills (`skills/*/SKILL.md`) define the multi-step process Claude follows. The workflow chain is: `analyze-corrections` (generates friction report) → `improve-project` or `improve-bmad` (consumes friction report, cross-references with current config, suggests changes).
@@ -49,7 +49,7 @@ Commands (`commands/*.md`) are user-facing slash command docs. Skills (`skills/*
 `skills/analyze-corrections/extract_friction.py` pre-aggregates friction signals (denials, negations, contradictions, repeated clarifications) into JSON to reduce context load.
 
 ### Installation (`install.sh`, `uninstall.sh`)
-Interactive scripts (no CLI args). Install supports link (symlink) or copy mode to global/project/.claude/ directories. Writes `install.manifest` tracking all installed files. Updates `settings.json` with hook entries via jq. Uninstall reads manifest for clean removal.
+Interactive scripts (no CLI args). Install supports link (symlink) or copy mode to global/project/.claude/ directories. Writes `install.manifest` tracking all installed files and `setup.yaml` with install metadata (scope, mode, source, timestamp, manifest). Updates `settings.json` with hook entries via jq. Uninstall reads manifest for clean removal.
 
 Installed layout:
 ```
@@ -57,10 +57,19 @@ Installed layout:
   promptforge/hooks/     ← hook scripts
   promptforge/logs/      ← JSONL log files
   promptforge/schema.json
+  promptforge/setup.yaml ← install metadata (scope, mode, source, manifest)
   promptforge/install.manifest
   commands/promptforge/  ← slash command .md files
+  commands/promptforge/_scope-preamble.md ← scope selection logic (not a slash command)
   skills/promptforge-*/  ← skill directories
 ```
+
+### Scope Selection
+For **global installs** (`scope: global` in `setup.yaml`), all commands ask the user whether to run in project or global scope:
+- **Project scope**: filters log entries by `project_dir` via `--project-filter`, targets project-local config
+- **Global scope**: analyzes all log entries, targets `~/.claude/` config files
+
+For **project-local installs**, project scope is used automatically. The scope preamble (`commands/_scope-preamble.md`) is read by each command before execution — it reads `setup.yaml` via the Read tool (no Bash needed) and sets scope variables (`SCOPE_PROJECT_FILTER`, `SCOPE_TARGET_DIR`, `SCOPE_FRICTION_REPORT`, `SCOPE_LABEL`).
 
 ## Development Conventions
 
@@ -69,3 +78,4 @@ Installed layout:
 - jq is the only external dependency for hooks; python3 is optional (for analysis)
 - Tags are the primary mechanism for filtering and categorization across the system
 - Log files are append-only, daily-partitioned, never overwritten
+- After any code change, update this CLAUDE.md to reflect the current state of the codebase

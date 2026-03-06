@@ -2,13 +2,17 @@
 
 Use promptforge friction analysis to suggest improvements to BMAD agents, tasks, checklists, and configuration.
 
+**Before running this command**, read and follow the scope selection procedure in the `_scope-preamble.md` file located alongside this command file.
+
+**Note**: BMAD configuration (`.bmad-core/`) is project-local. If global scope was selected, inform the user that this command only works in project scope. Offer to switch to project scope or abort.
+
 ## Prerequisites
 
-This command works best after running `/promptforge:analyze-corrections` to generate a Friction Report. If no friction report exists at `.claude/promptforge/friction-report.md`, run the analysis first.
+This command works best after running `/promptforge:analyze-corrections` to generate a Friction Report. If no friction report exists at `$SCOPE_FRICTION_REPORT`, run the analysis first.
 
 ## Data Sources
 
-1. **Friction Report**: `.claude/promptforge/friction-report.md`
+1. **Friction Report**: `$SCOPE_FRICTION_REPORT`
 2. **PromptForge logs**: `~/.claude/promptforge/logs/*.jsonl` and project logs
 3. **BMAD files** (read via task agent to avoid context flooding):
    - `.bmad-core/core-config.yaml`

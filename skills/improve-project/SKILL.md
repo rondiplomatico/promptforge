@@ -9,15 +9,13 @@ When user runs `/promptforge:improve-project` or asks to improve their project c
 ## Steps
 
 1. **Check for Friction Report**:
-   Look for `.claude/promptforge/friction-report.md`. If it doesn't exist, inform the user to run `/promptforge:analyze-corrections` first.
+   Look for `$SCOPE_FRICTION_REPORT`. If it doesn't exist, inform the user to run `/promptforge:analyze-corrections` first.
 
 2. **Gather context via task agent**:
-   Spawn a task agent with these instructions:
-   > Read and summarize the following files for the current project:
-   > - `CLAUDE.md` — list all key instructions, preferences, and constraints
-   > - `.claude/settings.json` — extract the permissions section (allow/deny lists)
-   > - All files in the project's memory directory (MEMORY.md and any topic files)
-   >
+   Spawn a task agent to read files from `$SCOPE_TARGET_DIR`:
+   - **Project scope**: `CLAUDE.md`, `.claude/settings.json`, project memory files (`~/.claude/projects/*/memory/`)
+   - **Global scope**: `~/.claude/CLAUDE.md`, `~/.claude/settings.json`, `~/.claude/memory/*`
+
    > Return a condensed summary organized as:
    > 1. **Key CLAUDE.md instructions** (one line each)
    > 2. **Permission patterns** (what's allowed/denied)
@@ -25,7 +23,7 @@ When user runs `/promptforge:improve-project` or asks to improve their project c
    > 4. **Potential gaps** (areas not covered by current instructions)
 
 3. **Read Friction Report**:
-   Read `.claude/promptforge/friction-report.md`.
+   Read `$SCOPE_FRICTION_REPORT`.
 
 4. **Read recent logs** (optional):
    Scan recent promptforge logs for additional context on friction patterns.

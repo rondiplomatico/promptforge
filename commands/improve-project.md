@@ -2,30 +2,30 @@
 
 Use promptforge friction analysis to suggest improvements to CLAUDE.md, permissions, and memory files.
 
+**Before running this command**, read and follow the scope selection procedure in the `_scope-preamble.md` file located alongside this command file.
+
 ## Prerequisites
 
-This command works best after running `/promptforge:analyze-corrections` to generate a Friction Report. If no friction report exists at `.claude/promptforge/friction-report.md`, run the analysis first.
+This command works best after running `/promptforge:analyze-corrections` to generate a Friction Report. If no friction report exists at `$SCOPE_FRICTION_REPORT`, run the analysis first.
 
 ## Data Sources
 
-1. **Friction Report**: `.claude/promptforge/friction-report.md`
+1. **Friction Report**: `$SCOPE_FRICTION_REPORT`
 2. **PromptForge logs**: `~/.claude/promptforge/logs/*.jsonl` and project logs
-3. **Current config** (read via task agent to avoid context flooding):
-   - `CLAUDE.md`
-   - `.claude/settings.json` (permissions section)
-   - All files in the project's memory directory
+3. **Current config** (read via task agent to avoid context flooding), resolved by scope:
+   - **Project scope**: `CLAUDE.md`, `.claude/settings.json`, project memory directory
+   - **Global scope**: `~/.claude/CLAUDE.md`, `~/.claude/settings.json`, `~/.claude/memory/`
 
 ## Process
 
 ### Step 1: Gather Context
-Spawn a task agent to read and summarize:
-- `CLAUDE.md` — current project instructions
-- `.claude/settings.json` — current permission allow/deny lists
-- All memory files (`~/.claude/projects/*/memory/` for this project)
+Spawn a task agent to read and summarize the config files at `$SCOPE_TARGET_DIR`:
+- **Project scope**: `CLAUDE.md`, `.claude/settings.json`, project memory files (`~/.claude/projects/*/memory/`)
+- **Global scope**: `~/.claude/CLAUDE.md`, `~/.claude/settings.json`, `~/.claude/memory/*`
 Ask the agent to return a condensed summary of: key instructions, permission patterns, and stored preferences.
 
 ### Step 2: Read Friction Report
-Read `.claude/promptforge/friction-report.md` for the top friction patterns.
+Read `$SCOPE_FRICTION_REPORT` for the top friction patterns.
 
 ### Step 3: Cross-Reference
 For each friction pattern, determine:

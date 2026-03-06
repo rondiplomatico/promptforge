@@ -70,6 +70,7 @@ def main():
     parser = argparse.ArgumentParser(description="Analyze PromptForge interaction logs")
     parser.add_argument("--logs-dir", action="append", help="Log directory (can be repeated)")
     parser.add_argument("--since", help="Only analyze after this date (YYYY-MM-DD)")
+    parser.add_argument("--project-filter", help="Only include entries matching this project directory")
     parser.add_argument("--format", choices=["text", "markdown"], default="text", help="Output format")
     parser.add_argument("--output", help="Write report to file instead of stdout")
     args = parser.parse_args()
@@ -91,6 +92,12 @@ def main():
         sys.exit(1)
 
     records = load_logs(log_dirs, since_date)
+
+    if args.project_filter:
+        filter_path = os.path.realpath(args.project_filter)
+        records = [r for r in records
+                   if os.path.realpath(r.get('project_dir', '')) == filter_path]
+
     if not records:
         print("No log entries found in:", ", ".join(log_dirs))
         if since_date:

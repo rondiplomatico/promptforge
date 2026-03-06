@@ -2,14 +2,18 @@
 
 Scan PromptForge interaction logs for corrections, negations, contradictions, and repeated friction.
 
+**Before running this command**, read and follow the scope selection procedure in the `_scope-preamble.md` file located alongside this command file.
+
 ## How to run
 
 Pre-filter logs with the helper script, then analyze the output:
 
 ```bash
 SCRIPT="$(dirname "$(readlink -f ~/.claude/promptforge/hooks/log-prompt.sh)")/../skills/analyze-corrections/extract_friction.py"
-python3 "$SCRIPT" --output /tmp/promptforge-friction-data.json
+python3 "$SCRIPT" --output /tmp/promptforge-friction-data.json $SCOPE_PROJECT_FILTER
 ```
+
+Where `$SCOPE_PROJECT_FILTER` is either `--project-filter <project_dir>` (project scope) or omitted (global scope), as determined by the scope preamble.
 
 Read the resulting JSON and analyze:
 - **Tool denials**: frequency by tool, `is_interrupt` vs explicit, repeated patterns
@@ -20,7 +24,7 @@ Read the resulting JSON and analyze:
 
 ## Output
 
-Write a **Friction Report** to `.claude/promptforge/friction-report.md`:
+Write a **Friction Report** to `$SCOPE_FRICTION_REPORT` (as determined by the scope preamble — project scope: `<project>/.claude/promptforge/friction-report.md`, global scope: `~/.claude/promptforge/friction-report.md`):
 
 1. **Top 10 Friction Patterns** ranked by frequency, each with: category, frequency, 2-3 examples, root cause hypothesis, suggested fix area (`CLAUDE.md` / `BMAD agent` / `BMAD task` / `permissions` / `workflow`)
 2. **Summary Statistics**: total friction events, friction rate, trend over time

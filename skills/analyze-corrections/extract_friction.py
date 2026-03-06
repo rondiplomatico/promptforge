@@ -212,6 +212,7 @@ def main():
     parser.add_argument("--logs-dir", default=os.path.expanduser("~/.claude/promptforge/logs/"),
                         help="Logs directory")
     parser.add_argument("--project-logs-dir", help="Additional project-specific logs directory")
+    parser.add_argument("--project-filter", help="Only include entries matching this project directory")
     parser.add_argument("--output", default="/tmp/promptforge-friction-data.json",
                         help="Output JSON file")
     args = parser.parse_args()
@@ -220,6 +221,11 @@ def main():
     entries = load_logs(args.logs_dir)
     if args.project_logs_dir:
         entries.extend(load_logs(args.project_logs_dir))
+
+    if args.project_filter:
+        filter_path = os.path.realpath(args.project_filter)
+        entries = [e for e in entries
+                   if os.path.realpath(e.get('project_dir', '')) == filter_path]
 
     if not entries:
         print("No log entries found.", file=sys.stderr)
