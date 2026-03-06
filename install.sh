@@ -4,6 +4,7 @@
 set -e
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+MANIFEST_FILES=()
 
 echo "=== promptforge installer ==="
 echo "Source: $REPO_DIR"
@@ -81,6 +82,7 @@ install_file() {
     cp "$src" "$dst"
     echo "  Copied   $dst"
   fi
+  MANIFEST_FILES+=("$dst")
 }
 
 # Helper: install a directory (symlink or copy)
@@ -89,10 +91,15 @@ install_dir() {
   if [ "$INSTALL_MODE" = "link" ]; then
     ln -sfn "$src" "$dst"
     echo "  Linked   $dst → $src"
+    MANIFEST_FILES+=("$dst")
   else
     rm -rf "$dst"
     cp -r "$src" "$dst"
     echo "  Copied   $dst"
+    # Add all files in the copied directory to manifest
+    while IFS= read -r -d '' f; do
+      MANIFEST_FILES+=("$f")
+    done < <(find "$dst" -type f -print0)
   fi
 }
 
@@ -110,6 +117,7 @@ done
 # Always copy schema (small file)
 cp "$REPO_DIR/schema.json" "$TARGET_CLAUDE_DIR/promptforge/schema.json"
 echo "  Copied   $TARGET_CLAUDE_DIR/promptforge/schema.json"
+MANIFEST_FILES+=("$TARGET_CLAUDE_DIR/promptforge/schema.json")
 
 # Install commands
 mkdir -p "$TARGET_CLAUDE_DIR/commands/promptforge"
@@ -125,6 +133,10 @@ for skill_dir in "$REPO_DIR/skills/"*/; do
   skill_name=$(basename "$skill_dir")
   install_dir "$skill_dir" "$TARGET_CLAUDE_DIR/skills/promptforge-${skill_name}"
 done
+
+# --- Write install manifest ---
+printf '%s\n' "${MANIFEST_FILES[@]}" > "$TARGET_CLAUDE_DIR/promptforge/install.manifest"
+echo "  Written  $TARGET_CLAUDE_DIR/promptforge/install.manifest (${#MANIFEST_FILES[@]} entries)"
 
 # --- Update settings.json with hook entries ---
 SETTINGS_FILE="$TARGET_CLAUDE_DIR/settings.json"

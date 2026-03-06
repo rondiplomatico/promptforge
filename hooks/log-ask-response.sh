@@ -28,19 +28,11 @@ CWD=$(echo "$INPUT" | jq -r '.cwd // empty')
 PROJECT_DIR=$(echo "$INPUT" | jq -r '.workspace.project_dir // empty')
 TIMESTAMP=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
 
-# Extract question(s) from inputs - handle both single and multiple questions
-QUESTION=$(echo "$INPUT" | jq -r '
-  if .inputs.questions then
-    [.inputs.questions[].question] | join("\n")
-  elif .inputs.question then
-    .inputs.question
-  else
-    "unknown"
-  end
-')
+# Extract question from tool_input
+QUESTION=$(echo "$INPUT" | jq -r '.tool_input.question // "unknown"')
 
-# Extract user's answer from response
-ANSWER=$(echo "$INPUT" | jq -r '.response // empty')
+# Extract user's answer from tool_response
+ANSWER=$(echo "$INPUT" | jq -r '.tool_response // empty')
 
 TAGS='["clarification"]'
 
