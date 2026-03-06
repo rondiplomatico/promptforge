@@ -172,10 +172,12 @@ esac
 } > "$TARGET_PF_DIR/setup.yaml"
 echo "  Written  $TARGET_PF_DIR/setup.yaml"
 
-# --- Update settings.json with hook entries ---
-SETTINGS_FILE="$TARGET_CLAUDE_DIR/settings.json"
+# --- Update settings.local.json with hook entries ---
+# Hooks use absolute paths and write to local .promptforge/ — they belong in
+# the local (non-committed) settings file, not the shared settings.json.
+SETTINGS_FILE="$TARGET_CLAUDE_DIR/settings.local.json"
 
-# Ensure settings.json exists
+# Ensure settings.local.json exists
 if [ ! -f "$SETTINGS_FILE" ]; then
   echo '{}' > "$SETTINGS_FILE"
 fi
@@ -223,10 +225,6 @@ UPDATED=$(jq --arg hdir "$HOOKS_DIR" '
 echo "$UPDATED" > "$SETTINGS_FILE"
 echo "  Updated  $SETTINGS_FILE (5 hook entries)"
 
-# Check if old log-prompts.sh was removed
-if echo "$UPDATED" | jq -e '.hooks | map(select(.command | tostring | contains("log-prompts.sh"))) | length == 0' >/dev/null 2>&1; then
-  echo "  Removed  old log-prompts.sh hook entry (if present)"
-fi
 
 echo ""
 echo "Done!"

@@ -100,17 +100,18 @@ done < "$MANIFEST"
 echo "  $REMOVED removed, $MISSING already missing"
 echo ""
 
-# --- [4] Remove hook entries from settings.json ---
-SETTINGS_FILE="$TARGET_CLAUDE_DIR/settings.json"
+# --- [4] Remove hook entries from settings.local.json ---
+SETTINGS_FILE="$TARGET_CLAUDE_DIR/settings.local.json"
 
 if [ -f "$SETTINGS_FILE" ]; then
-  echo "[4] Cleaning settings.json..."
+  echo "[4] Cleaning settings.local.json..."
   BEFORE=$(jq '.hooks // [] | length' "$SETTINGS_FILE")
   UPDATED=$(jq '
     .hooks = ((.hooks // []) | map(select(.command | tostring | contains("promptforge") | not)))
+    | if .hooks == [] then del(.hooks) else . end
   ' "$SETTINGS_FILE")
   echo "$UPDATED" > "$SETTINGS_FILE"
-  AFTER=$(echo "$UPDATED" | jq '.hooks | length')
+  AFTER=$(echo "$UPDATED" | jq '.hooks // [] | length')
   HOOKS_REMOVED=$((BEFORE - AFTER))
   echo "  Removed $HOOKS_REMOVED hook entries from $SETTINGS_FILE"
   echo ""
