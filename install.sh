@@ -1,6 +1,6 @@
 #!/bin/bash
 # promptforge installer — interactive, no CLI arguments
-# Installs hooks, commands, and skills to a target .claude/ directory
+# Installs hooks and skill to a target .claude/ directory
 set -e
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -119,20 +119,21 @@ cp "$REPO_DIR/schema.json" "$TARGET_CLAUDE_DIR/promptforge/schema.json"
 echo "  Copied   $TARGET_CLAUDE_DIR/promptforge/schema.json"
 MANIFEST_FILES+=("$TARGET_CLAUDE_DIR/promptforge/schema.json")
 
-# Install commands
-mkdir -p "$TARGET_CLAUDE_DIR/commands/promptforge"
-for cmd in "$REPO_DIR/commands/"*.md; do
-  [ -f "$cmd" ] || continue
-  install_file "$cmd" "$TARGET_CLAUDE_DIR/commands/promptforge/$(basename "$cmd")"
+# Migrate: remove old command/skill layout from previous installs
+if [ -d "$TARGET_CLAUDE_DIR/commands/promptforge" ]; then
+  rm -rf "$TARGET_CLAUDE_DIR/commands/promptforge"
+  echo "  Migrated: removed old commands/promptforge/"
+  rmdir "$TARGET_CLAUDE_DIR/commands" 2>/dev/null || true
+fi
+for old_skill in "$TARGET_CLAUDE_DIR/skills/promptforge-"*/; do
+  [ -d "$old_skill" ] || continue
+  rm -rf "$old_skill"
+  echo "  Migrated: removed old $(basename "$old_skill")/"
 done
 
-# Install skills
+# Install unified skill
 mkdir -p "$TARGET_CLAUDE_DIR/skills"
-for skill_dir in "$REPO_DIR/skills/"*/; do
-  [ -d "$skill_dir" ] || continue
-  skill_name=$(basename "$skill_dir")
-  install_dir "$skill_dir" "$TARGET_CLAUDE_DIR/skills/promptforge-${skill_name}"
-done
+install_dir "$REPO_DIR/skills/promptforge" "$TARGET_CLAUDE_DIR/skills/promptforge"
 
 # --- Write install manifest ---
 printf '%s\n' "${MANIFEST_FILES[@]}" > "$TARGET_CLAUDE_DIR/promptforge/install.manifest"

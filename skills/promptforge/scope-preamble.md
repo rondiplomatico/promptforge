@@ -1,12 +1,12 @@
 # PromptForge Scope Selection
 
-Follow this procedure before executing any promptforge command.
+Follow this procedure before executing any promptforge workflow.
 
 ## Step 1: Detect install type
 
 Read `~/.claude/promptforge/setup.yaml`. Check the `scope` field:
-- If `scope: global` → this is a **global install**, proceed to Step 2
-- If the file does not exist, or `scope: project` → this is a **project-local install**, skip to Step 3 with **project scope**
+- If `scope: global` -> this is a **global install**, proceed to Step 2
+- If the file does not exist, or `scope: project` -> this is a **project-local install**, skip to Step 3 with **project scope**
 
 ## Step 2: Ask scope question (global installs only)
 
@@ -18,7 +18,7 @@ Ask the user using AskUserQuestion:
 
 ## Step 3: Set scope variables
 
-Based on the selected scope, use these values throughout the command:
+Based on the selected scope, use these values throughout the workflow:
 
 ### Project scope
 - **SCOPE_PROJECT_FILTER**: `--project-filter <current working directory>` (pass to Python scripts)
@@ -32,4 +32,4 @@ Based on the selected scope, use these values throughout the command:
 - **SCOPE_FRICTION_REPORT**: `~/.claude/promptforge/friction-report.md`
 - **SCOPE_LABEL**: "global"
 
-Carry these values forward into the command that follows.
+Carry these values forward into the workflow that follows.

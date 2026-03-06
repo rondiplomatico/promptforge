@@ -1,6 +1,6 @@
 #!/bin/bash
 # promptforge uninstaller — interactive, no CLI arguments
-# Removes hooks, commands, skills, and optionally logs from a target .claude/ directory
+# Removes hooks, skill, and optionally logs from a target .claude/ directory
 set -e
 
 echo "=== promptforge uninstaller ==="
@@ -140,9 +140,10 @@ check_user_files() {
 }
 
 check_user_files "$TARGET_CLAUDE_DIR/promptforge/hooks" "promptforge/hooks/"
-check_user_files "$TARGET_CLAUDE_DIR/commands/promptforge" "commands/promptforge/"
+check_user_files "$TARGET_CLAUDE_DIR/skills/promptforge" "skills/promptforge/"
 
-# Check all promptforge skill directories
+# Also check old layout directories from previous installs
+check_user_files "$TARGET_CLAUDE_DIR/commands/promptforge" "commands/promptforge/"
 for skill_dir in "$TARGET_CLAUDE_DIR/skills/promptforge-"*/; do
   [ -d "$skill_dir" ] || continue
   check_user_files "$skill_dir" "skills/$(basename "$skill_dir")/"
@@ -186,8 +187,10 @@ cleanup_dir() {
 }
 
 cleanup_dir "$TARGET_CLAUDE_DIR/promptforge/hooks"
-cleanup_dir "$TARGET_CLAUDE_DIR/commands/promptforge"
+cleanup_dir "$TARGET_CLAUDE_DIR/skills/promptforge"
 
+# Also clean up old layout directories from previous installs
+cleanup_dir "$TARGET_CLAUDE_DIR/commands/promptforge"
 for skill_dir in "$TARGET_CLAUDE_DIR/skills/promptforge-"*/; do
   [ -d "$skill_dir" ] || continue
   cleanup_dir "$skill_dir"
