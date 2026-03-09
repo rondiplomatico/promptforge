@@ -1,6 +1,6 @@
-# Analyze Corrections and Friction
+# Diagnose — Friction Analysis
 
-Scan PromptForge interaction logs for corrections, negations, contradictions, and repeated friction.
+Scan Claudicate interaction logs for corrections, negations, contradictions, and repeated friction.
 
 ## Prerequisites
 
@@ -13,7 +13,7 @@ None. This is typically the first workflow to run.
 Run the extraction script to pre-filter and aggregate friction signals from logs:
 
 ```bash
-python3 <skill_dir>/scripts/extract_friction.py --output /tmp/promptforge-friction-data.json $SCOPE_PROJECT_FILTER
+python3 <skill_dir>/scripts/extract_friction.py --output /tmp/claudicate-friction-data.json $SCOPE_PROJECT_FILTER
 ```
 
 Where `$SCOPE_PROJECT_FILTER` is `--project-filter <project_dir>` for project scope or omitted for global scope.
@@ -31,7 +31,7 @@ Read the pre-filtered data (or raw logs) and identify:
 
 ### 3. Write Friction Report
 
-Write the report to `$SCOPE_FRICTION_REPORT` (project scope: `<project>/.promptforge/friction-report.md`, global scope: `~/.promptforge/friction-report.md`) with:
+Write the report to `$SCOPE_FRICTION_REPORT` (project scope: `<project>/.claudicate/friction-report.md`, global scope: `~/.claudicate/friction-report.md`) with:
 
 1. **Top 10 Friction Patterns** ranked by frequency, each with: category, frequency, 2-3 examples, root cause hypothesis, suggested fix area (`CLAUDE.md` / `BMAD agent` / `BMAD task` / `permissions` / `workflow`)
 2. **Summary Statistics**: total friction events, friction rate, trend over time

@@ -1,9 +1,9 @@
 #!/bin/bash
-# promptforge uninstaller — interactive, no CLI arguments
+# claudicate uninstaller — interactive, no CLI arguments
 # Removes hooks, skill, and optionally logs from a target directory
 set -e
 
-echo "=== promptforge uninstaller ==="
+echo "=== claudicate uninstaller ==="
 echo ""
 
 # --- Prerequisites ---
@@ -14,7 +14,7 @@ fi
 
 # --- [1] Uninstall target ---
 echo "[1] Uninstall target"
-echo "    (g) Global (~/.promptforge/ + ~/.claude/)"
+echo "    (g) Global (~/.claudicate/ + ~/.claude/)"
 echo "    (p) Project — enter path"
 echo "    (.) Current directory ($(pwd))"
 printf "    > "
@@ -42,20 +42,15 @@ case "$TARGET_CHOICE" in
     ;;
 esac
 
-TARGET_PF_DIR="$TARGET_BASE/.promptforge"
+TARGET_PF_DIR="$TARGET_BASE/.claudicate"
 TARGET_CLAUDE_DIR="$TARGET_BASE/.claude"
 
-# Check both old and new locations for manifest
 MANIFEST="$TARGET_PF_DIR/install.manifest"
-if [ ! -f "$MANIFEST" ]; then
-  # Fall back to old location
-  MANIFEST="$TARGET_CLAUDE_DIR/promptforge/install.manifest"
-fi
 
 if [ ! -f "$MANIFEST" ]; then
   echo ""
   echo "Error: No install manifest found."
-  echo "promptforge does not appear to be installed at $TARGET_BASE."
+  echo "claudicate does not appear to be installed at $TARGET_BASE."
   exit 1
 fi
 
@@ -66,7 +61,7 @@ echo ""
 
 # --- [2] WARNING ---
 echo "    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-echo "    !!  WARNING: THIS WILL REMOVE ALL PROMPTFORGE FILES FROM  !!"
+echo "    !!  WARNING: THIS WILL REMOVE ALL CLAUDICATE FILES FROM  !!"
 echo "    !!  $TARGET_BASE"
 echo "    !!  THIS ACTION CANNOT BE UNDONE.                         !!"
 echo "    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
@@ -112,20 +107,15 @@ if [ -f "$SETTINGS_FILE" ]; then
   echo "[4] Cleaning $(basename "$SETTINGS_FILE")..."
   UPDATED=$(jq '
     if (.hooks | type) == "object" then
-      # New format: object keyed by event name, each value is array of matcher groups
       .hooks |= with_entries(
-        .value |= map(select(.hooks | all(.command | tostring | contains("promptforge") | not)))
+        .value |= map(select(.hooks | all(.command | tostring | contains("claudicate") | not)))
       )
       | .hooks |= with_entries(select(.value | length > 0))
       | if .hooks == {} then del(.hooks) else . end
-    elif (.hooks | type) == "array" then
-      # Old flat-array format
-      .hooks = (.hooks | map(select(.command | tostring | contains("promptforge") | not)))
-      | if .hooks == [] then del(.hooks) else . end
     else . end
   ' "$SETTINGS_FILE")
   echo "$UPDATED" > "$SETTINGS_FILE"
-  echo "  Removed promptforge hook entries from $SETTINGS_FILE"
+  echo "  Removed claudicate hook entries from $SETTINGS_FILE"
   echo ""
 fi
 
@@ -160,25 +150,13 @@ check_user_files() {
   fi
 }
 
-check_user_files "$TARGET_PF_DIR/hooks" ".promptforge/hooks/"
-check_user_files "$TARGET_CLAUDE_DIR/skills/promptforge" ".claude/skills/promptforge/"
-
-# Also check old layout directories from previous installs
-check_user_files "$TARGET_CLAUDE_DIR/promptforge/hooks" ".claude/promptforge/hooks/"
-check_user_files "$TARGET_CLAUDE_DIR/commands/promptforge" ".claude/commands/promptforge/"
-for skill_dir in "$TARGET_CLAUDE_DIR/skills/promptforge-"*/; do
-  [ -d "$skill_dir" ] || continue
-  check_user_files "$skill_dir" ".claude/skills/$(basename "$skill_dir")/"
-done
+check_user_files "$TARGET_PF_DIR/hooks" ".claudicate/hooks/"
+check_user_files "$TARGET_CLAUDE_DIR/skills/claudicate" ".claude/skills/claudicate/"
 
 echo ""
 
 # --- [6] Log data ---
 LOG_DIR="$TARGET_PF_DIR/logs"
-# Also check old location
-if [ ! -d "$LOG_DIR" ]; then
-  LOG_DIR="$TARGET_CLAUDE_DIR/promptforge/logs"
-fi
 
 if [ -d "$LOG_DIR" ]; then
   LOG_COUNT=$(find "$LOG_DIR" -type f 2>/dev/null | wc -l)
@@ -222,25 +200,13 @@ cleanup_dir "$TARGET_PF_DIR/logs"
 cleanup_dir "$TARGET_PF_DIR"
 
 # .claude skill dirs
-cleanup_dir "$TARGET_CLAUDE_DIR/skills/promptforge"
-
-# Old layout cleanup
-cleanup_dir "$TARGET_CLAUDE_DIR/promptforge/hooks"
-cleanup_dir "$TARGET_CLAUDE_DIR/promptforge/logs"
-cleanup_dir "$TARGET_CLAUDE_DIR/promptforge"
-cleanup_dir "$TARGET_CLAUDE_DIR/commands/promptforge"
-for skill_dir in "$TARGET_CLAUDE_DIR/skills/promptforge-"*/; do
-  [ -d "$skill_dir" ] || continue
-  cleanup_dir "$skill_dir"
-done
-
-cleanup_dir "$TARGET_CLAUDE_DIR/commands"
+cleanup_dir "$TARGET_CLAUDE_DIR/skills/claudicate"
 cleanup_dir "$TARGET_CLAUDE_DIR/skills"
 
 echo ""
 
 # --- [8] Summary ---
-echo "Done! promptforge has been uninstalled from $TARGET_BASE."
+echo "Done! claudicate has been uninstalled from $TARGET_BASE."
 if [ -d "$LOG_DIR" ]; then
   echo "  Note: Log data was kept at $LOG_DIR"
 fi

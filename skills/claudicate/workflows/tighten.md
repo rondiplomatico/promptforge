@@ -1,4 +1,4 @@
-# Improve Permissions
+# Tighten — Permission Optimization
 
 Analyze and optimize Claude Code permission patterns across `settings.json` (shared/versioned) and `settings.local.json` (personal/local). Detects redundancies, anomalies, generalization opportunities, and suggests new patterns from tool usage logs.
 
@@ -43,10 +43,10 @@ python3 scripts/extract_permissions.py \
   [--local-settings-file <local>] \
   [--context-settings <context-shared>] \
   [--context-local-settings <context-local>] \
-  --logs-dir ~/.promptforge/logs/ \
-  [--logs-dir <project>/.promptforge/logs/] \
+  --logs-dir ~/.claudicate/logs/ \
+  [--logs-dir <project>/.claudicate/logs/] \
   [$SCOPE_PROJECT_FILTER] \
-  --output /tmp/promptforge-permissions-data.json
+  --output /tmp/claudicate-permissions-data.json
 ```
 
 ### 3. Read and present findings

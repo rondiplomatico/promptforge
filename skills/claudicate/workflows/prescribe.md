@@ -1,10 +1,10 @@
-# Improve Project Configuration
+# Prescribe — Project Config Improvements
 
-Use promptforge friction analysis to suggest improvements to CLAUDE.md, permissions, and memory files.
+Use claudicate friction analysis to suggest improvements to CLAUDE.md, permissions, and memory files.
 
 ## Prerequisites
 
-Run `/promptforge analyze-corrections` first to generate a Friction Report. If no friction report exists at `$SCOPE_FRICTION_REPORT`, inform the user and run the analysis.
+Run `/claudicate diagnose` first to generate a Friction Report. If no friction report exists at `$SCOPE_FRICTION_REPORT`, inform the user and run the analysis.
 
 ## Steps
 

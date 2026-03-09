@@ -1,5 +1,5 @@
 #!/bin/bash
-# promptforge hook: UserPromptSubmit → JSONL
+# claudicate hook: UserPromptSubmit → JSONL
 # Captures user prompts with auto-tagging
 set -e
 
@@ -7,13 +7,13 @@ set -e
 resolve_log_dir() {
   local project_dir
   project_dir=$(echo "$INPUT" | jq -r '.workspace.project_dir // empty')
-  if [ -n "$project_dir" ] && [ -d "$project_dir/.promptforge/logs" ]; then
-    echo "$project_dir/.promptforge/logs"
-  elif [ -d "$HOME/.promptforge/logs" ]; then
-    echo "$HOME/.promptforge/logs"
+  if [ -n "$project_dir" ] && [ -d "$project_dir/.claudicate/logs" ]; then
+    echo "$project_dir/.claudicate/logs"
+  elif [ -d "$HOME/.claudicate/logs" ]; then
+    echo "$HOME/.claudicate/logs"
   else
-    mkdir -p "$HOME/.promptforge/logs"
-    echo "$HOME/.promptforge/logs"
+    mkdir -p "$HOME/.claudicate/logs"
+    echo "$HOME/.claudicate/logs"
   fi
 }
 

@@ -1,12 +1,12 @@
-# Improve BMAD Configuration
+# Prescribe BMAD — BMAD Config Improvements
 
-Use promptforge friction analysis to suggest improvements to BMAD agents, tasks, checklists, and configuration.
+Use claudicate friction analysis to suggest improvements to BMAD agents, tasks, checklists, and configuration.
 
 **Note**: BMAD configuration (`.bmad-core/`) is project-local. If global scope was selected, inform the user that this workflow only works in project scope. Offer to switch to project scope or abort.
 
 ## Prerequisites
 
-Run `/promptforge analyze-corrections` first to generate a Friction Report. If no friction report exists at `$SCOPE_FRICTION_REPORT`, inform the user and run the analysis.
+Run `/claudicate diagnose` first to generate a Friction Report. If no friction report exists at `$SCOPE_FRICTION_REPORT`, inform the user and run the analysis.
 
 ## Steps
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-PromptForge: analyze-agents.py
-Analysis of Claude Code agent session patterns from PromptForge interaction logs.
+Claudicate: analyze-agents.py
+Analysis of Claude Code agent session patterns from Claudicate interaction logs.
 """
 
 import argparse
@@ -51,14 +51,14 @@ def load_logs(dirs, since_date=None):
 
 
 def discover_log_dirs():
-    """Auto-discover promptforge log directories."""
+    """Auto-discover claudicate log directories."""
     dirs = []
-    global_dir = os.path.expanduser("~/.promptforge/logs")
+    global_dir = os.path.expanduser("~/.claudicate/logs")
     if os.path.isdir(global_dir):
         dirs.append(global_dir)
     proj_dir = os.environ.get("CLAUDE_PROJECT_DIR")
     if proj_dir:
-        project_logs = os.path.join(proj_dir, ".promptforge", "logs")
+        project_logs = os.path.join(proj_dir, ".claudicate", "logs")
         if os.path.isdir(project_logs):
             dirs.append(project_logs)
     return dirs

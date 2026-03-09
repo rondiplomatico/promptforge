@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-promptforge: extract_permissions.py
+claudicate: extract_permissions.py
 Analyze settings.json permission patterns for redundancies, anomalies,
 generalization opportunities, and new candidates from tool usage logs.
 """
@@ -412,7 +412,7 @@ def main():
                         help="Minimum entries to suggest generalization (default: 3)")
     parser.add_argument("--denial-threshold", type=int, default=2,
                         help="Minimum uncovered invocations to suggest new pattern (default: 2)")
-    parser.add_argument("--output", default="/tmp/promptforge-permissions-data.json",
+    parser.add_argument("--output", default="/tmp/claudicate-permissions-data.json",
                         help="Output JSON file")
     args = parser.parse_args()
 
@@ -461,7 +461,7 @@ def main():
 
     # Load logs for denial/usage analysis
     entries = []
-    log_dirs = args.logs_dir or [os.path.expanduser("~/.promptforge/logs/")]
+    log_dirs = args.logs_dir or [os.path.expanduser("~/.claudicate/logs/")]
     for ld in log_dirs:
         entries.extend(load_logs(ld))
 

@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## What is promptforge?
+## What is claudicate?
 
 A self-improvement toolkit for Claude Code. Five bash hooks capture user interactions (prompts, clarification answers, tool denials, tool uses, turn ends) as structured JSONL logs. Python scripts and Claude-driven skills then analyze these logs to detect friction patterns and suggest improvements to project configuration (CLAUDE.md, permissions, memory) and BMAD setup.
 
@@ -18,7 +18,7 @@ Claude Code events → 5 hook scripts → JSONL daily logs → Python analysis /
 Bash scripts triggered by Claude Code events. All share a common pattern:
 - Read JSON from stdin (`INPUT=$(cat)`)
 - Extract fields with `jq -r`
-- Resolve log directory (project-local `.promptforge/logs/` first, global `~/.promptforge/logs/` fallback)
+- Resolve log directory (project-local `.claudicate/logs/` first, global `~/.claudicate/logs/` fallback)
 - Append one JSON line to `YYYY-MM-DD.jsonl`
 - Use `set -e` and exit 0
 
@@ -47,7 +47,7 @@ Utility scripts in `scripts/`:
 - `extract-sessions.py` — backfills logs from Claude Code session transcripts
 - `validate-logs.py` — validates JSONL against schema
 
-Analysis scripts co-located in `skills/promptforge/scripts/`:
+Analysis scripts co-located in `skills/claudicate/scripts/`:
 - `analyze_usage.py` — generates usage report (volume, time patterns, token usage, tags); excludes agent sessions by default (`--include-agents` to include)
 - `analyze_agents.py` — agent-specific analysis (overview, prompt characteristics, friction, parent-child session correlation, complexity)
 - `extract_friction.py` — pre-aggregates friction signals (denials, negations, contradictions, repeated clarifications) into JSON; excludes agent sessions by default (`--include-agents` to include)
@@ -55,21 +55,21 @@ Analysis scripts co-located in `skills/promptforge/scripts/`:
 
 All analysis scripts support `--logs-dir` (repeatable), `--since`, auto-discover log directories, and `--project-filter DIR` to restrict analysis to entries from a specific project.
 
-### Unified Skill (`skills/promptforge/`)
-A single skill directory provides all promptforge workflows via `/promptforge <workflow>`. The `SKILL.md` router accepts arguments (`$0`) to dispatch to workflow files, or presents an interactive menu if no argument is given.
+### Unified Skill (`skills/claudicate/`)
+A single skill directory provides all claudicate workflows via `/claudicate <workflow>`. The `SKILL.md` router accepts arguments (`$0`) to dispatch to workflow files, or presents an interactive menu if no argument is given.
 
 ```
-skills/promptforge/
+skills/claudicate/
   SKILL.md              ← router (user-invocable, no auto-trigger)
   scope-preamble.md     ← shared scope selection logic
   workflows/            ← one .md per workflow (merged command+skill docs)
-    analyze-corrections.md
-    analyze-usage.md
-    analyze-agents.md
-    improve-project.md
-    improve-bmad.md
-    improve-agents.md
-    improve-permissions.md
+    diagnose.md
+    gait.md
+    agent-xray.md
+    prescribe.md
+    prescribe-bmad.md
+    rehab.md
+    tighten.md
   scripts/              ← co-located Python analysis scripts
     extract_friction.py
     extract_permissions.py
@@ -78,23 +78,23 @@ skills/promptforge/
 ```
 
 Two workflow chains:
-- **User friction**: `analyze-corrections` (generates friction report) → `improve-project` or `improve-bmad` (consumes friction report, cross-references with current config, suggests changes)
-- **Agent improvement**: `analyze-agents` (agent session analysis) + friction report → `improve-agents` (suggests agent prompt, skill, and instruction improvements)
-- **Permission optimization**: `improve-permissions` (analyzes both `settings.json` and `settings.local.json` for redundancies, consolidation, new candidates from tool usage/denial logs, and overly broad patterns with tightening suggestions based on actual usage; scope-aware with cross-scope redundancy detection; in project scope, also reads global settings; writes changes back to the correct file)
+- **User friction**: `diagnose` (generates friction report) → `prescribe` or `prescribe-bmad` (consumes friction report, cross-references with current config, suggests changes)
+- **Agent improvement**: `agent-xray` (agent session analysis) + friction report → `rehab` (suggests agent prompt, skill, and instruction improvements)
+- **Permission optimization**: `tighten` (analyzes both `settings.json` and `settings.local.json` for redundancies, consolidation, new candidates from tool usage/denial logs, and overly broad patterns with tightening suggestions based on actual usage; scope-aware with cross-scope redundancy detection; in project scope, also reads global settings; writes changes back to the correct file)
 
 ### Installation (`install.sh`, `uninstall.sh`)
-Interactive scripts (no CLI args). Install supports link (symlink) or copy mode. Data (hooks, logs, schema, config) goes to `.promptforge/`; skills go to `.claude/skills/`. Hook entries are registered in the appropriate settings file: **global installs** use `.claude/settings.json` (Claude Code doesn't support `settings.local.json` at the global `~/.claude/` level), **project installs** use `.claude/settings.local.json` (local, not committed — hooks use absolute paths and write to local `.promptforge/`). Writes `install.manifest` and `setup.yaml` with install metadata. For project installs in git repos, offers to add `.promptforge/` to `.gitignore` (warns about log data exposure if skipped). Uninstall reads manifest for clean removal.
+Interactive scripts (no CLI args). Install supports link (symlink) or copy mode. Data (hooks, logs, schema, config) goes to `.claudicate/`; skills go to `.claude/skills/`. Hook entries are registered in the appropriate settings file: **global installs** use `.claude/settings.json` (Claude Code doesn't support `settings.local.json` at the global `~/.claude/` level), **project installs** use `.claude/settings.local.json` (local, not committed — hooks use absolute paths and write to local `.claudicate/`). Writes `install.manifest` and `setup.yaml` with install metadata. For project installs in git repos, offers to add `.claudicate/` to `.gitignore` (warns about log data exposure if skipped). Uninstall reads manifest for clean removal.
 
 Installed layout:
 ```
-<target>/.promptforge/
+<target>/.claudicate/
   hooks/                 ← hook scripts
   logs/                  ← JSONL log files
   schema.json
   setup.yaml             ← install metadata (scope, mode, source, manifest)
   install.manifest
 <target>/.claude/
-  skills/promptforge/    ← unified skill directory (SKILL.md, workflows/, scripts/)
+  skills/claudicate/    ← unified skill directory (SKILL.md, workflows/, scripts/)
   settings.json          ← hook entries (global installs)
   settings.local.json    ← hook entries (project installs, not committed)
 ```
@@ -104,7 +104,7 @@ For **global installs** (`scope: global` in `setup.yaml`), all workflows ask the
 - **Project scope**: filters log entries by `project_dir` via `--project-filter`, targets project-local config
 - **Global scope**: analyzes all log entries, targets `~/.claude/` config files
 
-For **project-local installs**, project scope is used automatically. The scope preamble (`skills/promptforge/scope-preamble.md`) is read before each workflow — it reads `~/.promptforge/setup.yaml` via the Read tool (no Bash needed) and sets scope variables (`SCOPE_PROJECT_FILTER`, `SCOPE_TARGET_DIR`, `SCOPE_FRICTION_REPORT`, `SCOPE_LABEL`).
+For **project-local installs**, project scope is used automatically. The scope preamble (`skills/claudicate/scope-preamble.md`) is read before each workflow — it reads `~/.claudicate/setup.yaml` via the Read tool (no Bash needed) and sets scope variables (`SCOPE_PROJECT_FILTER`, `SCOPE_TARGET_DIR`, `SCOPE_FRICTION_REPORT`, `SCOPE_LABEL`).
 
 ## Development Conventions
 
@@ -114,3 +114,4 @@ For **project-local installs**, project scope is used automatically. The scope p
 - Tags are the primary mechanism for filtering and categorization across the system
 - Log files are append-only, daily-partitioned, never overwritten
 - **ALWAYS** update both `CLAUDE.md` and `README.md` after any code change to reflect the current state of the codebase. This is mandatory — no change is complete without updating the docs.
+- When bumping the version, update the static badge in `README.md` (line 5: `version-X.Y.Z-blue`)

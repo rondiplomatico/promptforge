@@ -1,12 +1,12 @@
-# Improve Agent Usage
+# Rehab — Agent Improvement
 
-Use promptforge agent analysis and friction data to suggest improvements to agent prompts, skill definitions, and CLAUDE.md instructions.
+Use claudicate agent analysis and friction data to suggest improvements to agent prompts, skill definitions, and CLAUDE.md instructions.
 
 ## Prerequisites
 
 Run these workflows first:
-1. `/promptforge analyze-corrections` to generate a Friction Report
-2. `/promptforge analyze-agents` to generate an Agent Analysis Report
+1. `/claudicate diagnose` to generate a Friction Report
+2. `/claudicate agent-xray` to generate an Agent Analysis Report
 
 If the friction report doesn't exist at `$SCOPE_FRICTION_REPORT`, inform the user and run the analysis.
 
@@ -17,7 +17,7 @@ If the friction report doesn't exist at `$SCOPE_FRICTION_REPORT`, inform the use
 Run the agent analysis script:
 
 ```bash
-python3 <skill_dir>/scripts/analyze_agents.py --format markdown $SCOPE_PROJECT_FILTER --output /tmp/promptforge-agent-report.md
+python3 <skill_dir>/scripts/analyze_agents.py --format markdown $SCOPE_PROJECT_FILTER --output /tmp/claudicate-agent-report.md
 ```
 
 ### 2. Gather context via task agent
@@ -34,7 +34,7 @@ Spawn a task agent to read and summarize:
 
 ### 3. Read reports
 
-Read the friction report at `$SCOPE_FRICTION_REPORT` and the agent analysis at `/tmp/promptforge-agent-report.md`.
+Read the friction report at `$SCOPE_FRICTION_REPORT` and the agent analysis at `/tmp/claudicate-agent-report.md`.
 
 ### 4. Cross-reference and analyze
 

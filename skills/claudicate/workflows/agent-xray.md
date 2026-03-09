@@ -1,6 +1,6 @@
-# Analyze Agent Sessions
+# Agent X-Ray — Agent Session Analysis
 
-Analyze Claude Code agent session patterns from PromptForge interaction logs.
+Analyze Claude Code agent session patterns from Claudicate interaction logs.
 
 ## Prerequisites
 

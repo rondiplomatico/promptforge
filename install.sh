@@ -1,12 +1,12 @@
 #!/bin/bash
-# promptforge installer — interactive, no CLI arguments
+# claudicate installer — interactive, no CLI arguments
 # Installs hooks, scripts, and skill to a target directory
 set -e
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 MANIFEST_FILES=()
 
-echo "=== promptforge installer ==="
+echo "=== claudicate installer ==="
 echo "Source: $REPO_DIR"
 echo ""
 
@@ -23,7 +23,7 @@ echo ""
 
 # --- [1] Install target ---
 echo "[1] Install target"
-echo "    (g) Global (~/.promptforge/ + ~/.claude/)"
+echo "    (g) Global (~/.claudicate/ + ~/.claude/)"
 echo "    (p) Project — enter path"
 echo "    (.) Current directory ($(pwd))"
 printf "    > "
@@ -51,7 +51,7 @@ case "$TARGET_CHOICE" in
     ;;
 esac
 
-TARGET_PF_DIR="$TARGET_BASE/.promptforge"
+TARGET_PF_DIR="$TARGET_BASE/.claudicate"
 TARGET_CLAUDE_DIR="$TARGET_BASE/.claude"
 echo ""
 
@@ -106,12 +106,12 @@ install_dir() {
   fi
 }
 
-# Create .promptforge directories
+# Create .claudicate directories
 mkdir -p "$TARGET_PF_DIR/logs"
 echo "  Created  $TARGET_PF_DIR/logs/"
 mkdir -p "$TARGET_PF_DIR/hooks"
 
-# Install hook scripts to .promptforge/hooks/
+# Install hook scripts to .claudicate/hooks/
 chmod +x "$REPO_DIR/hooks/"*.sh
 for hook in "$REPO_DIR/hooks/"*.sh; do
   install_file "$hook" "$TARGET_PF_DIR/hooks/$(basename "$hook")"
@@ -122,32 +122,9 @@ cp "$REPO_DIR/schema.json" "$TARGET_PF_DIR/schema.json"
 echo "  Copied   $TARGET_PF_DIR/schema.json"
 MANIFEST_FILES+=("$TARGET_PF_DIR/schema.json")
 
-# Migrate: remove old .claude/promptforge/ layout from previous installs
-if [ -d "$TARGET_CLAUDE_DIR/promptforge" ]; then
-  # Preserve logs if they exist in old location
-  if [ -d "$TARGET_CLAUDE_DIR/promptforge/logs" ] && [ "$(ls -A "$TARGET_CLAUDE_DIR/promptforge/logs" 2>/dev/null)" ]; then
-    echo "  Migrating logs from .claude/promptforge/logs/ to .promptforge/logs/..."
-    cp -n "$TARGET_CLAUDE_DIR/promptforge/logs/"*.jsonl "$TARGET_PF_DIR/logs/" 2>/dev/null || true
-  fi
-  rm -rf "$TARGET_CLAUDE_DIR/promptforge"
-  echo "  Migrated: removed old .claude/promptforge/"
-fi
-
-# Migrate: remove old command/skill layout from previous installs
-if [ -d "$TARGET_CLAUDE_DIR/commands/promptforge" ]; then
-  rm -rf "$TARGET_CLAUDE_DIR/commands/promptforge"
-  echo "  Migrated: removed old commands/promptforge/"
-  rmdir "$TARGET_CLAUDE_DIR/commands" 2>/dev/null || true
-fi
-for old_skill in "$TARGET_CLAUDE_DIR/skills/promptforge-"*/; do
-  [ -d "$old_skill" ] || continue
-  rm -rf "$old_skill"
-  echo "  Migrated: removed old $(basename "$old_skill")/"
-done
-
 # Install unified skill to .claude/skills/
 mkdir -p "$TARGET_CLAUDE_DIR/skills"
-install_dir "$REPO_DIR/skills/promptforge" "$TARGET_CLAUDE_DIR/skills/promptforge"
+install_dir "$REPO_DIR/skills/claudicate" "$TARGET_CLAUDE_DIR/skills/claudicate"
 
 # --- Write install manifest ---
 printf '%s\n' "${MANIFEST_FILES[@]}" > "$TARGET_PF_DIR/install.manifest"
@@ -160,7 +137,7 @@ case "$TARGET_CHOICE" in
 esac
 
 {
-  echo "# Written by promptforge installer"
+  echo "# Written by claudicate installer"
   echo "scope: $SCOPE"
   echo "install_mode: $INSTALL_MODE"
   echo "source: $REPO_DIR"
@@ -190,20 +167,17 @@ HOOKS_DIR="$TARGET_PF_DIR/hooks"
 
 # Build hooks in Claude Code's required format:
 #   { "hooks": { "EventName": [ { "matcher": "...", "hooks": [ { "type": "command", "command": "..." } ] } ] } }
-# Read existing settings, remove old promptforge hook entries, add new ones
+# Read existing settings, remove old claudicate hook entries, add new ones
 UPDATED=$(jq --arg hdir "$HOOKS_DIR" '
-  # Remove old flat-array format if present (from pre-fix installs)
-  if (.hooks | type) == "array" then .hooks = {} else . end
-  |
   # Ensure hooks is an object
   .hooks = (.hooks // {})
   |
-  # Helper: filter out promptforge entries from an event array
-  def remove_pf: map(select(.hooks | all(.command | tostring | contains("promptforge") | not)));
-  # Clean existing promptforge entries from all events
+  # Helper: filter out existing claudicate entries from an event array
+  def remove_pf: map(select(.hooks | all(.command | tostring | contains("claudicate") | not)));
+  # Clean existing claudicate entries from all events
   .hooks |= with_entries(.value |= remove_pf)
   |
-  # Add promptforge hooks
+  # Add claudicate hooks
   .hooks.UserPromptSubmit = ((.hooks.UserPromptSubmit // []) + [
     { "hooks": [{ "type": "command", "command": ($hdir + "/log-prompt.sh"), "timeout": 5000 }] }
   ])
@@ -238,22 +212,22 @@ if [ "$TARGET_CHOICE" != "g" ] && [ -d "$TARGET_BASE/.git" ]; then
   NEEDS_ADD=true
 
   if [ -f "$GITIGNORE" ]; then
-    # Check if .promptforge is already ignored (exact line or with trailing slash)
-    if grep -qxF '.promptforge' "$GITIGNORE" 2>/dev/null || \
-       grep -qxF '.promptforge/' "$GITIGNORE" 2>/dev/null || \
-       grep -qxF '/.promptforge' "$GITIGNORE" 2>/dev/null || \
-       grep -qxF '/.promptforge/' "$GITIGNORE" 2>/dev/null; then
+    # Check if .claudicate is already ignored (exact line or with trailing slash)
+    if grep -qxF '.claudicate' "$GITIGNORE" 2>/dev/null || \
+       grep -qxF '.claudicate/' "$GITIGNORE" 2>/dev/null || \
+       grep -qxF '/.claudicate' "$GITIGNORE" 2>/dev/null || \
+       grep -qxF '/.claudicate/' "$GITIGNORE" 2>/dev/null; then
       NEEDS_ADD=false
-      echo "[3] .promptforge/ is already in .gitignore ✓"
+      echo "[3] .claudicate/ is already in .gitignore ✓"
     fi
   fi
 
   if [ "$NEEDS_ADD" = true ]; then
-    echo "[3] This is a git repository. .promptforge/ contains usage logs"
+    echo "[3] This is a git repository. .claudicate/ contains usage logs"
     echo "    (session prompts, tool invocations, timestamps) that should"
     echo "    NOT be committed to version control."
     echo ""
-    echo "    (a) Add '.promptforge/' to .gitignore (Recommended)"
+    echo "    (a) Add '.claudicate/' to .gitignore (Recommended)"
     echo "    (s) Skip — I'll handle it myself"
     printf "    > "
     read -r GITIGNORE_CHOICE
@@ -262,21 +236,21 @@ if [ "$TARGET_CHOICE" != "g" ] && [ -d "$TARGET_BASE/.git" ]; then
       a)
         # Add with a comment header if .gitignore doesn't exist or doesn't have it
         if [ ! -f "$GITIGNORE" ]; then
-          echo "# promptforge interaction logs" > "$GITIGNORE"
-          echo ".promptforge/" >> "$GITIGNORE"
-          echo "  Created  $GITIGNORE with .promptforge/ entry"
+          echo "# claudicate interaction logs" > "$GITIGNORE"
+          echo ".claudicate/" >> "$GITIGNORE"
+          echo "  Created  $GITIGNORE with .claudicate/ entry"
         else
           # Add a blank line separator if file doesn't end with newline
           [ -s "$GITIGNORE" ] && [ "$(tail -c 1 "$GITIGNORE")" != "" ] && echo "" >> "$GITIGNORE"
           echo "" >> "$GITIGNORE"
-          echo "# promptforge interaction logs" >> "$GITIGNORE"
-          echo ".promptforge/" >> "$GITIGNORE"
-          echo "  Added    .promptforge/ to $GITIGNORE"
+          echo "# claudicate interaction logs" >> "$GITIGNORE"
+          echo ".claudicate/" >> "$GITIGNORE"
+          echo "  Added    .claudicate/ to $GITIGNORE"
         fi
         ;;
       *)
         echo ""
-        echo "    ⚠  WARNING: .promptforge/logs/ contains full usage logs including"
+        echo "    ⚠  WARNING: .claudicate/logs/ contains full usage logs including"
         echo "    session prompts, tool arguments, and timestamps. Without a .gitignore"
         echo "    entry, this data WILL be committed to version control."
         echo ""
@@ -287,7 +261,7 @@ if [ "$TARGET_CHOICE" != "g" ] && [ -d "$TARGET_BASE/.git" ]; then
 fi
 
 # --- [4] Import existing session data ---
-echo "[4] Import existing session history into promptforge logs?"
+echo "[4] Import existing session history into claudicate logs?"
 echo "    (y) Yes — parse existing Claude Code sessions + old prompt logs (may take a moment)"
 echo "    (n) No — start fresh, only capture new interactions going forward"
 printf "    > "

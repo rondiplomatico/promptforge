@@ -1,6 +1,6 @@
-# Analyze Usage Behavior
+# Gait — Usage Analysis
 
-Analyze Claude Code usage patterns from PromptForge interaction logs.
+Analyze Claude Code usage patterns from Claudicate interaction logs.
 
 ## Prerequisites
 
