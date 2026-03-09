@@ -110,15 +110,22 @@ fi
 
 if [ -f "$SETTINGS_FILE" ]; then
   echo "[4] Cleaning $(basename "$SETTINGS_FILE")..."
-  BEFORE=$(jq '.hooks // [] | length' "$SETTINGS_FILE")
   UPDATED=$(jq '
-    .hooks = ((.hooks // []) | map(select(.command | tostring | contains("promptforge") | not)))
-    | if .hooks == [] then del(.hooks) else . end
+    if (.hooks | type) == "object" then
+      # New format: object keyed by event name, each value is array of matcher groups
+      .hooks |= with_entries(
+        .value |= map(select(.hooks | all(.command | tostring | contains("promptforge") | not)))
+      )
+      | .hooks |= with_entries(select(.value | length > 0))
+      | if .hooks == {} then del(.hooks) else . end
+    elif (.hooks | type) == "array" then
+      # Old flat-array format
+      .hooks = (.hooks | map(select(.command | tostring | contains("promptforge") | not)))
+      | if .hooks == [] then del(.hooks) else . end
+    else . end
   ' "$SETTINGS_FILE")
   echo "$UPDATED" > "$SETTINGS_FILE"
-  AFTER=$(echo "$UPDATED" | jq '.hooks // [] | length')
-  HOOKS_REMOVED=$((BEFORE - AFTER))
-  echo "  Removed $HOOKS_REMOVED hook entries from $SETTINGS_FILE"
+  echo "  Removed promptforge hook entries from $SETTINGS_FILE"
   echo ""
 fi
 

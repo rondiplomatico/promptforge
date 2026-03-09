@@ -35,7 +35,7 @@ CWD=$(echo "$INPUT" | jq -r '.cwd // empty')
 PROJECT_DIR=$(echo "$INPUT" | jq -r '.workspace.project_dir // empty')
 TIMESTAMP=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
 
-# Truncate tool_input to 500 chars
+# Truncate tool_input to 500 chars (as string to avoid broken JSON from mid-truncation)
 TOOL_INPUT=$(echo "$INPUT" | jq -c '.tool_input // {}' | head -c 500)
 
 jq -n -c \
@@ -45,7 +45,7 @@ jq -n -c \
   --arg pd "$PROJECT_DIR" \
   --arg cwd "$CWD" \
   --arg tool "$TOOL_NAME" \
-  --argjson input "$TOOL_INPUT" \
+  --arg input "$TOOL_INPUT" \
   --argjson tags "$(if [[ "$SESSION_ID" == agent-* ]]; then echo '["agent"]'; else echo '[]'; fi)" \
   '{timestamp: $ts, event_type: $et, session_id: $sid, project_dir: $pd, cwd: $cwd, tool_name: $tool, tool_input: $input, tags: $tags}' \
   >> "$LOG_FILE"

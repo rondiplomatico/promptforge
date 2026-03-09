@@ -40,6 +40,9 @@ def auto_tag(text):
     if re.search(r'(commit|push|pull\s+request|merge|pr\s)', text, re.I):
         tags.append("git_ops")
 
+    if text.startswith("This session is being continued from a previous conversation"):
+        tags.append("compaction")
+
     return tags
 
 
@@ -121,15 +124,24 @@ def parse_session_jsonl(filepath, since_date=None, project_filter=None):
                                     )
 
                                 # AskUserQuestion answer
-                                if "User has answered your questions:" in str(result_content):
+                                if "User has answered your questions:" in str(result_content) or \
+                                   "User answered your question:" in str(result_content):
                                     question = ""
                                     answer = ""
-                                    q_match = re.search(r'Question:\s*(.*?)(?:\nAnswer:)', str(result_content), re.S)
-                                    a_match = re.search(r'Answer:\s*(.*?)$', str(result_content), re.S)
-                                    if q_match:
-                                        question = q_match.group(1).strip()
-                                    if a_match:
-                                        answer = a_match.group(1).strip()
+                                    text = str(result_content)
+                                    # Multi-question format: "Q1"="A1", "Q2"="A2"
+                                    pairs = re.findall(r'"([^"]+)"="([^"]*(?:"[^"]*)*)"', text)
+                                    if pairs:
+                                        question = " | ".join(q for q, _ in pairs)
+                                        answer = " | ".join(a for _, a in pairs)
+                                    else:
+                                        # Single-question format: Question: ...\nAnswer: ...
+                                        q_match = re.search(r'Question:\s*(.*?)(?:\nAnswer:)', text, re.S)
+                                        a_match = re.search(r'Answer:\s*(.*?)$', text, re.S)
+                                        if q_match:
+                                            question = q_match.group(1).strip()
+                                        if a_match:
+                                            answer = a_match.group(1).strip()
                                     entry = {
                                         "timestamp": timestamp or datetime.utcnow().isoformat() + "Z",
                                         "event_type": "ask_response",

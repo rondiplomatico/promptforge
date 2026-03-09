@@ -188,42 +188,40 @@ fi
 
 HOOKS_DIR="$TARGET_PF_DIR/hooks"
 
-# Build the hooks array using jq
-# Read existing settings, remove old promptforge hooks, add new ones
+# Build hooks in Claude Code's required format:
+#   { "hooks": { "EventName": [ { "matcher": "...", "hooks": [ { "type": "command", "command": "..." } ] } ] } }
+# Read existing settings, remove old promptforge hook entries, add new ones
 UPDATED=$(jq --arg hdir "$HOOKS_DIR" '
-  # Remove existing promptforge hook entries (by command path containing "promptforge")
-  .hooks = ((.hooks // []) | map(select(.command | tostring | contains("promptforge") | not)))
-  # Also remove old log-prompts.sh hook
-  | .hooks = (.hooks | map(select(.command | tostring | contains("log-prompts.sh") | not)))
-  # Add new promptforge hooks
-  | .hooks += [
-    {
-      "event": "UserPromptSubmit",
-      "command": ($hdir + "/log-prompt.sh"),
-      "timeout": 5000
-    },
-    {
-      "event": "PostToolUse",
-      "matcher": "AskUserQuestion",
-      "command": ($hdir + "/log-ask-response.sh"),
-      "timeout": 5000
-    },
-    {
-      "event": "PostToolUseFailure",
-      "command": ($hdir + "/log-tool-denial.sh"),
-      "timeout": 5000
-    },
-    {
-      "event": "PostToolUse",
-      "command": ($hdir + "/log-tool-use.sh"),
-      "timeout": 5000
-    },
-    {
-      "event": "Stop",
-      "command": ($hdir + "/log-stop.sh"),
-      "timeout": 10000
-    }
-  ]
+  # Remove old flat-array format if present (from pre-fix installs)
+  if (.hooks | type) == "array" then .hooks = {} else . end
+  |
+  # Ensure hooks is an object
+  .hooks = (.hooks // {})
+  |
+  # Helper: filter out promptforge entries from an event array
+  def remove_pf: map(select(.hooks | all(.command | tostring | contains("promptforge") | not)));
+  # Clean existing promptforge entries from all events
+  .hooks |= with_entries(.value |= remove_pf)
+  |
+  # Add promptforge hooks
+  .hooks.UserPromptSubmit = ((.hooks.UserPromptSubmit // []) + [
+    { "hooks": [{ "type": "command", "command": ($hdir + "/log-prompt.sh"), "timeout": 5000 }] }
+  ])
+  |
+  .hooks.PostToolUse = ((.hooks.PostToolUse // []) + [
+    { "matcher": "AskUserQuestion",
+      "hooks": [{ "type": "command", "command": ($hdir + "/log-ask-response.sh"), "timeout": 5000 }] },
+    { "matcher": "Bash|Write|Edit",
+      "hooks": [{ "type": "command", "command": ($hdir + "/log-tool-use.sh"), "timeout": 5000 }] }
+  ])
+  |
+  .hooks.PostToolUseFailure = ((.hooks.PostToolUseFailure // []) + [
+    { "hooks": [{ "type": "command", "command": ($hdir + "/log-tool-denial.sh"), "timeout": 5000 }] }
+  ])
+  |
+  .hooks.Stop = ((.hooks.Stop // []) + [
+    { "hooks": [{ "type": "command", "command": ($hdir + "/log-stop.sh"), "timeout": 10000 }] }
+  ])
 ' "$SETTINGS_FILE")
 
 echo "$UPDATED" > "$SETTINGS_FILE"

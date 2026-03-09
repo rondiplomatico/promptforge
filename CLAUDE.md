@@ -32,7 +32,12 @@ Bash scripts triggered by Claude Code events. All share a common pattern:
 
 PostToolUse hooks receive data in `tool_input` / `tool_response` fields (not `inputs` / `response`).
 
-`log-prompt.sh` applies auto-tags via regex (bmad, slash_command, planning, testing, git_ops, etc.). `log-tool-denial.sh` filters to only user interrupts and explicit denials. `log-tool-use.sh` filters to only Bash, Write, and Edit tools (Read/Glob/Grep/Agent are too noisy and not permission-relevant). All hooks detect agent sessions (session_id starting with `agent-`) and add the `agent` tag automatically.
+`log-prompt.sh` applies auto-tags via regex (bmad, slash_command, planning, testing, git_ops, compaction, etc.). `log-tool-denial.sh` filters to only user interrupts and explicit denials. `log-tool-use.sh` filters to only Bash, Write, and Edit tools (Read/Glob/Grep/Agent are too noisy and not permission-relevant); tool_input is stored as a string (truncated to 500 chars) to avoid broken JSON from mid-truncation. `log-ask-response.sh` handles both single-question (`tool_input.question`) and multi-question (`tool_input.questions[]`) AskUserQuestion formats. All hooks detect agent sessions (session_id starting with `agent-`) and add the `agent` tag automatically.
+
+Hook entries in settings files use Claude Code's nested object format:
+```json
+{ "hooks": { "EventName": [{ "matcher": "...", "hooks": [{ "type": "command", "command": "..." }] }] } }
+```
 
 ### Log Format (`schema.json`)
 JSONL with required fields: `timestamp` (ISO 8601 UTC), `event_type`, `session_id`. Event-specific required fields: `prompt` (prompt), `question`+`answer` (ask_response), `denied_tool` (tool_denial), `tool_name` (tool_use). All events have optional `tags` array.

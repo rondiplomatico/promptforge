@@ -49,6 +49,11 @@ auto_tag() {
     tags+=("git_ops")
   fi
 
+  # Compaction (context window summary injection)
+  if [[ "$prompt" =~ ^This[[:space:]]session[[:space:]]is[[:space:]]being[[:space:]]continued[[:space:]]from[[:space:]]a[[:space:]]previous[[:space:]]conversation ]]; then
+    tags+=("compaction")
+  fi
+
   # Output as JSON array
   printf '%s\n' "${tags[@]}" | jq -R . | jq -s .
 }
