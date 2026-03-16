@@ -22,54 +22,68 @@ echo "jq ✓"
 echo ""
 
 # --- [1] Install target ---
-echo "[1] Install target"
-echo "    (g) Global (~/.claudicate/ + ~/.claude/)"
-echo "    (p) Project — enter path"
-echo "    (.) Current directory ($(pwd))"
-printf "    > "
-read -r TARGET_CHOICE
+while true; do
+  echo "[1] Install target"
+  echo "    (g) Global (~/.claudicate/ + ~/.claude/)"
+  echo "    (p) Project — enter path"
+  echo "    (.) Current directory ($(pwd))"
+  echo "    (q) Cancel"
+  printf "    > "
+  read -r TARGET_CHOICE
+  TARGET_CHOICE=$(echo "$TARGET_CHOICE" | tr '[:upper:]' '[:lower:]')
 
-case "$TARGET_CHOICE" in
-  g)
-    TARGET_BASE="$HOME"
-    ;;
-  p)
-    printf "    Enter project path: "
-    read -r PROJECT_PATH
-    if [ ! -d "$PROJECT_PATH" ]; then
-      echo "Error: Directory '$PROJECT_PATH' does not exist."
-      exit 1
-    fi
-    TARGET_BASE="$PROJECT_PATH"
-    ;;
-  .)
-    TARGET_BASE="$(pwd)"
-    ;;
-  *)
-    echo "Error: Invalid choice '$TARGET_CHOICE'. Use g, p, or ."
-    exit 1
-    ;;
-esac
+  case "$TARGET_CHOICE" in
+    g)
+      TARGET_BASE="$HOME"
+      break
+      ;;
+    p)
+      printf "    Enter project path: "
+      read -r PROJECT_PATH
+      if [ ! -d "$PROJECT_PATH" ]; then
+        echo "    Directory '$PROJECT_PATH' does not exist. Try again."
+        echo ""
+        continue
+      fi
+      TARGET_BASE="$PROJECT_PATH"
+      break
+      ;;
+    .)
+      TARGET_BASE="$(pwd)"
+      break
+      ;;
+    q)
+      echo "Cancelled."
+      exit 0
+      ;;
+    *)
+      echo "    Invalid choice. Try again."
+      echo ""
+      ;;
+  esac
+done
 
 TARGET_PF_DIR="$TARGET_BASE/.claudicate"
 TARGET_CLAUDE_DIR="$TARGET_BASE/.claude"
 echo ""
 
 # --- [2] Install mode ---
-echo "[2] Install mode"
-echo "    (l) Link — symlink back to this repo (auto-updates on git pull)"
-echo "    (c) Copy — standalone copy (requires manual re-install for updates)"
-printf "    > "
-read -r MODE_CHOICE
+while true; do
+  echo "[2] Install mode"
+  echo "    (l) Link — symlink back to this repo (auto-updates on git pull)"
+  echo "    (c) Copy — standalone copy (requires manual re-install for updates)"
+  echo "    (q) Cancel"
+  printf "    > "
+  read -r MODE_CHOICE
+  MODE_CHOICE=$(echo "$MODE_CHOICE" | tr '[:upper:]' '[:lower:]')
 
-case "$MODE_CHOICE" in
-  l) INSTALL_MODE="link" ;;
-  c) INSTALL_MODE="copy" ;;
-  *)
-    echo "Error: Invalid choice '$MODE_CHOICE'. Use l or c."
-    exit 1
-    ;;
-esac
+  case "$MODE_CHOICE" in
+    l) INSTALL_MODE="link"; break ;;
+    c) INSTALL_MODE="copy"; break ;;
+    q) echo "Cancelled."; exit 0 ;;
+    *) echo "    Invalid choice. Try again."; echo "" ;;
+  esac
+done
 echo ""
 
 # --- Execute installation ---
@@ -227,45 +241,67 @@ if [ "$TARGET_CHOICE" != "g" ] && [ -d "$TARGET_BASE/.git" ]; then
     echo "    (session prompts, tool invocations, timestamps) that should"
     echo "    NOT be committed to version control."
     echo ""
-    echo "    (a) Add '.claudicate/' to .gitignore (Recommended)"
-    echo "    (s) Skip — I'll handle it myself"
-    printf "    > "
-    read -r GITIGNORE_CHOICE
+    while true; do
+      echo "    (a) Add '.claudicate/' to .gitignore (Recommended)"
+      echo "    (s) Skip — I'll handle it myself"
+      echo "    (q) Cancel"
+      printf "    > "
+      read -r GITIGNORE_CHOICE
+      GITIGNORE_CHOICE=$(echo "$GITIGNORE_CHOICE" | tr '[:upper:]' '[:lower:]')
 
-    case "$GITIGNORE_CHOICE" in
-      a)
-        # Add with a comment header if .gitignore doesn't exist or doesn't have it
-        if [ ! -f "$GITIGNORE" ]; then
-          echo "# claudicate interaction logs" > "$GITIGNORE"
-          echo ".claudicate/" >> "$GITIGNORE"
-          echo "  Created  $GITIGNORE with .claudicate/ entry"
-        else
-          # Add a blank line separator if file doesn't end with newline
-          [ -s "$GITIGNORE" ] && [ "$(tail -c 1 "$GITIGNORE")" != "" ] && echo "" >> "$GITIGNORE"
-          echo "" >> "$GITIGNORE"
-          echo "# claudicate interaction logs" >> "$GITIGNORE"
-          echo ".claudicate/" >> "$GITIGNORE"
-          echo "  Added    .claudicate/ to $GITIGNORE"
-        fi
-        ;;
-      *)
-        echo ""
-        echo "    ⚠  WARNING: .claudicate/logs/ contains full usage logs including"
-        echo "    session prompts, tool arguments, and timestamps. Without a .gitignore"
-        echo "    entry, this data WILL be committed to version control."
-        echo ""
-        ;;
-    esac
+      case "$GITIGNORE_CHOICE" in
+        a)
+          # Add with a comment header if .gitignore doesn't exist or doesn't have it
+          if [ ! -f "$GITIGNORE" ]; then
+            echo "# claudicate interaction logs" > "$GITIGNORE"
+            echo ".claudicate/" >> "$GITIGNORE"
+            echo "  Created  $GITIGNORE with .claudicate/ entry"
+          else
+            # Add a blank line separator if file doesn't end with newline
+            [ -s "$GITIGNORE" ] && [ "$(tail -c 1 "$GITIGNORE")" != "" ] && echo "" >> "$GITIGNORE"
+            echo "" >> "$GITIGNORE"
+            echo "# claudicate interaction logs" >> "$GITIGNORE"
+            echo ".claudicate/" >> "$GITIGNORE"
+            echo "  Added    .claudicate/ to $GITIGNORE"
+          fi
+          break
+          ;;
+        s)
+          echo ""
+          echo "    ⚠  WARNING: .claudicate/logs/ contains full usage logs including"
+          echo "    session prompts, tool arguments, and timestamps. Without a .gitignore"
+          echo "    entry, this data WILL be committed to version control."
+          echo ""
+          break
+          ;;
+        q) echo "Cancelled."; exit 0 ;;
+        *) echo "    Invalid choice. Try again."; echo "" ;;
+      esac
+    done
   fi
   echo ""
 fi
 
 # --- [4] Import existing session data ---
-echo "[4] Import existing session history into claudicate logs?"
-echo "    (y) Yes — parse existing Claude Code sessions + old prompt logs (may take a moment)"
-echo "    (n) No — start fresh, only capture new interactions going forward"
-printf "    > "
-read -r IMPORT_CHOICE
+while true; do
+  echo "[4] Import existing session history into claudicate logs?"
+  echo "    (y) Yes — parse existing Claude Code sessions + old prompt logs (may take a moment)"
+  echo "    (n) No — start fresh, only capture new interactions going forward"
+  echo "    (q) Cancel"
+  printf "    > "
+  read -r IMPORT_CHOICE
+  IMPORT_CHOICE=$(echo "$IMPORT_CHOICE" | tr '[:upper:]' '[:lower:]')
+
+  case "$IMPORT_CHOICE" in
+    y|n|q) break ;;
+    *) echo "    Invalid choice. Try again."; echo "" ;;
+  esac
+done
+
+if [ "$IMPORT_CHOICE" = "q" ]; then
+  echo "Cancelled."
+  exit 0
+fi
 
 if [ "$IMPORT_CHOICE" = "y" ]; then
   if ! command -v python3 >/dev/null 2>&1; then

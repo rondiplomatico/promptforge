@@ -45,7 +45,7 @@ JSONL with required fields: `timestamp` (ISO 8601 UTC), `event_type`, `session_i
 
 ### Python Scripts
 Utility scripts in `scripts/`:
-- `extract-sessions.py` — backfills logs from Claude Code session transcripts
+- `extract-sessions.py` — backfills logs from Claude Code session transcripts; `--project` filter encodes paths to match Claude Code's directory naming convention (slashes → hyphens) and also filters individual records by `cwd` field
 - `validate-logs.py` — validates JSONL against schema
 
 Analysis scripts co-located in `skills/claudicate/scripts/`:

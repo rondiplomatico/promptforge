@@ -14,6 +14,16 @@ from datetime import datetime
 from pathlib import Path
 
 
+def encode_project_path(path):
+    """Encode a filesystem path the way Claude Code does for project directories.
+
+    Claude Code stores sessions under ~/.claude/projects/<encoded-path>/
+    where the path has separators replaced with hyphens (e.g. /home/user/proj -> -home-user-proj).
+    """
+    normalized = path.replace('\\', '/')
+    return normalized.replace('/', '-')
+
+
 def auto_tag(text):
     """Apply auto-tagging rules to a prompt text."""
     tags = []
@@ -78,8 +88,11 @@ def parse_session_jsonl(filepath, since_date=None, project_filter=None):
                     except (ValueError, AttributeError):
                         pass
 
-                if project_filter and project_filter.replace('\\', '/') not in str(filepath).replace('\\', '/'):
-                    continue
+                if project_filter:
+                    cwd_normalized = cwd.replace('\\', '/')
+                    filter_normalized = project_filter.replace('\\', '/')
+                    if filter_normalized not in cwd_normalized and cwd_normalized not in filter_normalized:
+                        continue
 
                 # Track tool_use blocks for correlating denials
                 if record_type == "assistant":
@@ -365,7 +378,7 @@ def main():
         session_files = list(projects_dir.rglob("*.jsonl"))
         print(f"Found {len(session_files)} session files")
         for i, sf in enumerate(session_files, 1):
-            if args.project and args.project.replace('\\', '/') not in str(sf).replace('\\', '/'):
+            if args.project and encode_project_path(args.project) not in str(sf).replace('\\', '/'):
                 continue
             entries = parse_session_jsonl(sf, since_date, args.project)
             if entries:
@@ -380,6 +393,11 @@ def main():
         if old_logs_dir.exists():
             print(f"\nParsing old text logs from {old_logs_dir}")
             old_entries = parse_old_text_logs(old_logs_dir)
+            if args.project:
+                filter_normalized = args.project.replace('\\', '/')
+                old_entries = [e for e in old_entries
+                               if filter_normalized in e.get('project_dir', '').replace('\\', '/')
+                               or filter_normalized in e.get('cwd', '').replace('\\', '/')]
             print(f"  Found {len(old_entries)} entries from old logs")
             all_entries.extend(old_entries)
         else:

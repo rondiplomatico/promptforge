@@ -13,34 +13,46 @@ if ! command -v jq >/dev/null 2>&1; then
 fi
 
 # --- [1] Uninstall target ---
-echo "[1] Uninstall target"
-echo "    (g) Global (~/.claudicate/ + ~/.claude/)"
-echo "    (p) Project — enter path"
-echo "    (.) Current directory ($(pwd))"
-printf "    > "
-read -r TARGET_CHOICE
+while true; do
+  echo "[1] Uninstall target"
+  echo "    (g) Global (~/.claudicate/ + ~/.claude/)"
+  echo "    (p) Project — enter path"
+  echo "    (.) Current directory ($(pwd))"
+  echo "    (q) Cancel"
+  printf "    > "
+  read -r TARGET_CHOICE
+  TARGET_CHOICE=$(echo "$TARGET_CHOICE" | tr '[:upper:]' '[:lower:]')
 
-case "$TARGET_CHOICE" in
-  g)
-    TARGET_BASE="$HOME"
-    ;;
-  p)
-    printf "    Enter project path: "
-    read -r PROJECT_PATH
-    if [ ! -d "$PROJECT_PATH" ]; then
-      echo "Error: Directory '$PROJECT_PATH' does not exist."
-      exit 1
-    fi
-    TARGET_BASE="$PROJECT_PATH"
-    ;;
-  .)
-    TARGET_BASE="$(pwd)"
-    ;;
-  *)
-    echo "Error: Invalid choice '$TARGET_CHOICE'. Use g, p, or ."
-    exit 1
-    ;;
-esac
+  case "$TARGET_CHOICE" in
+    g)
+      TARGET_BASE="$HOME"
+      break
+      ;;
+    p)
+      printf "    Enter project path: "
+      read -r PROJECT_PATH
+      if [ ! -d "$PROJECT_PATH" ]; then
+        echo "    Directory '$PROJECT_PATH' does not exist. Try again."
+        echo ""
+        continue
+      fi
+      TARGET_BASE="$PROJECT_PATH"
+      break
+      ;;
+    .)
+      TARGET_BASE="$(pwd)"
+      break
+      ;;
+    q)
+      echo "Cancelled."
+      exit 0
+      ;;
+    *)
+      echo "    Invalid choice. Try again."
+      echo ""
+      ;;
+  esac
+done
 
 TARGET_PF_DIR="$TARGET_BASE/.claudicate"
 TARGET_CLAUDE_DIR="$TARGET_BASE/.claude"
@@ -66,11 +78,12 @@ echo "    !!  $TARGET_BASE"
 echo "    !!  THIS ACTION CANNOT BE UNDONE.                         !!"
 echo "    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 echo ""
-printf "    Type 'YES' to continue: "
+printf "    Type 'YES' to continue (or 'q' to cancel): "
 read -r CONFIRM
+CONFIRM=$(echo "$CONFIRM" | tr '[:upper:]' '[:lower:]')
 
-if [ "$CONFIRM" != "YES" ]; then
-  echo "Aborted."
+if [ "$CONFIRM" != "yes" ]; then
+  echo "Cancelled."
   exit 0
 fi
 
@@ -86,9 +99,9 @@ while IFS= read -r filepath; do
   if [ -e "$filepath" ] || [ -L "$filepath" ]; then
     rm -rf "$filepath"
     echo "  Removed  $filepath"
-    ((REMOVED++))
+    REMOVED=$((REMOVED + 1))
   else
-    ((MISSING++))
+    MISSING=$((MISSING + 1))
   fi
 done < "$MANIFEST"
 
@@ -137,16 +150,25 @@ check_user_files() {
     for f in "${user_files[@]}"; do
       echo "    - $f"
     done
-    printf "  Remove these files? (y/n) > "
-    read -r REMOVE_CHOICE
-    if [ "$REMOVE_CHOICE" = "y" ]; then
-      for f in "${user_files[@]}"; do
-        rm -f "$f"
-        echo "  Removed  $f"
-      done
-    else
-      echo "  Kept user files in $label"
-    fi
+    while true; do
+      printf "  Remove these files? (y/n) > "
+      read -r REMOVE_CHOICE
+      REMOVE_CHOICE=$(echo "$REMOVE_CHOICE" | tr '[:upper:]' '[:lower:]')
+      case "$REMOVE_CHOICE" in
+        y)
+          for f in "${user_files[@]}"; do
+            rm -f "$f"
+            echo "  Removed  $f"
+          done
+          break
+          ;;
+        n)
+          echo "  Kept user files in $label"
+          break
+          ;;
+        *) echo "  Invalid choice. Try again." ;;
+      esac
+    done
   fi
 }
 
@@ -162,16 +184,25 @@ if [ -d "$LOG_DIR" ]; then
   LOG_COUNT=$(find "$LOG_DIR" -type f 2>/dev/null | wc -l)
   if [ "$LOG_COUNT" -gt 0 ]; then
     echo "[6] Found $LOG_COUNT log file(s) in $LOG_DIR"
-    echo "    (k) Keep logs"
-    echo "    (d) Delete logs"
-    printf "    > "
-    read -r LOG_CHOICE
-    if [ "$LOG_CHOICE" = "d" ]; then
-      rm -rf "$LOG_DIR"
-      echo "  Deleted  $LOG_DIR"
-    else
-      echo "  Kept logs at $LOG_DIR"
-    fi
+    while true; do
+      echo "    (k) Keep logs"
+      echo "    (d) Delete logs"
+      printf "    > "
+      read -r LOG_CHOICE
+      LOG_CHOICE=$(echo "$LOG_CHOICE" | tr '[:upper:]' '[:lower:]')
+      case "$LOG_CHOICE" in
+        d)
+          rm -rf "$LOG_DIR"
+          echo "  Deleted  $LOG_DIR"
+          break
+          ;;
+        k)
+          echo "  Kept logs at $LOG_DIR"
+          break
+          ;;
+        *) echo "    Invalid choice. Try again."; echo "" ;;
+      esac
+    done
     echo ""
   fi
 fi
