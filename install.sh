@@ -274,9 +274,12 @@ if [ "$IMPORT_CHOICE" = "y" ]; then
   else
     echo ""
     echo "Importing session history..."
-    python3 "$REPO_DIR/scripts/extract-sessions.py" \
-      --include-old-logs \
-      --output "$TARGET_PF_DIR/logs/" \
+    IMPORT_ARGS=(--include-old-logs --output "$TARGET_PF_DIR/logs/")
+    # For project-specific installs, filter to only this project's sessions
+    if [ "$TARGET_CHOICE" != "g" ]; then
+      IMPORT_ARGS+=(--project "$TARGET_BASE")
+    fi
+    python3 "$REPO_DIR/scripts/extract-sessions.py" "${IMPORT_ARGS[@]}" \
       && echo "Import complete." \
       || echo "Warning: Import encountered errors (partial data may have been written)."
   fi

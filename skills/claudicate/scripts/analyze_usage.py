@@ -96,9 +96,9 @@ def main():
     records = load_logs(log_dirs, since_date)
 
     if args.project_filter:
-        filter_path = os.path.realpath(args.project_filter)
+        filter_path = os.path.normpath(args.project_filter).replace('\\', '/')
         records = [r for r in records
-                   if os.path.realpath(r.get('project_dir', '')) == filter_path]
+                   if os.path.normpath(r.get('project_dir', '')).replace('\\', '/') == filter_path]
 
     # Filter agent sessions unless --include-agents
     if not args.include_agents:

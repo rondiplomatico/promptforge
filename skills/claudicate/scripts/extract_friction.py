@@ -225,9 +225,9 @@ def main():
         entries.extend(load_logs(args.project_logs_dir))
 
     if args.project_filter:
-        filter_path = os.path.realpath(args.project_filter)
+        filter_path = os.path.normpath(args.project_filter).replace('\\', '/')
         entries = [e for e in entries
-                   if os.path.realpath(e.get('project_dir', '')) == filter_path]
+                   if os.path.normpath(e.get('project_dir', '')).replace('\\', '/') == filter_path]
 
     # Filter agent sessions unless --include-agents
     if not args.include_agents:

@@ -78,7 +78,7 @@ def parse_session_jsonl(filepath, since_date=None, project_filter=None):
                     except (ValueError, AttributeError):
                         pass
 
-                if project_filter and project_filter not in str(filepath):
+                if project_filter and project_filter.replace('\\', '/') not in str(filepath).replace('\\', '/'):
                     continue
 
                 # Track tool_use blocks for correlating denials
@@ -365,7 +365,7 @@ def main():
         session_files = list(projects_dir.rglob("*.jsonl"))
         print(f"Found {len(session_files)} session files")
         for i, sf in enumerate(session_files, 1):
-            if args.project and args.project not in str(sf):
+            if args.project and args.project.replace('\\', '/') not in str(sf).replace('\\', '/'):
                 continue
             entries = parse_session_jsonl(sf, since_date, args.project)
             if entries:

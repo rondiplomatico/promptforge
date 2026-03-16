@@ -2,7 +2,7 @@
 
 ![Claudicate](claudicate_banner.png)
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/rondiplomatico/claudicate)
+[![Version](https://img.shields.io/badge/version-1.0.1-blue)](https://github.com/rondiplomatico/claudicate)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Shell](https://img.shields.io/badge/shell-bash-89e051)](https://www.gnu.org/software/bash/)
 [![Python](https://img.shields.io/badge/python-3.6%2B-3776ab)](https://www.python.org/)
@@ -19,6 +19,8 @@ Agent sessions (from Claude Code sub-agents) are automatically detected and tagg
 ## Install / Uninstall
 
 **Prerequisites**: `jq` (required), `python3` (optional, for analysis)
+
+**Platform note**: Works on Linux, macOS, and Windows (WSL/Git Bash). Hooks normalize Windows backslash paths to forward slashes before logging.
 
     ./install.sh    # interactive
     ./uninstall.sh  # manifest-based removal
@@ -91,6 +93,16 @@ Uses agent analysis and friction data to suggest improvements to agent prompts, 
 
 **Requires**: Run `diagnose` first. Works best after `agent-xray` too.
 
+### `/claudicate clean` — Reset Logs and Reports
+
+Sometimes you want a fresh start. Interactively delete accumulated log data and/or friction reports within the current scope. Options:
+
+- **All logs** — wipe all JSONL log files
+- **Logs before a date** — prune logs older than a cutoff (uses `YYYY-MM-DD.jsonl` filenames)
+- **Friction reports** — remove generated friction report files
+
+Scope-aware: in project scope, only touches project-local data; in global scope, touches `~/.claudicate/`.
+
 ### `/claudicate tighten` — Permission Optimization
 
 Finds the wildcard patterns you added at 2am and gently suggests you didn't mean `Bash(*)`. Analyzes permission patterns across both `settings.json` (shared/versioned) and `settings.local.json` (personal/local) and suggests optimizations:
@@ -125,6 +137,9 @@ The loop that makes the limp visible:
 **Permission cleanup:**
 1. Use Claude Code normally to accumulate tool usage/denial logs
 2. `/claudicate tighten` — get redundancy, consolidation, and new pattern suggestions
+
+**Maintenance:**
+- `/claudicate clean` — prune old logs or start fresh
 
 **Agent-focused improvement:**
 1. `/claudicate agent-xray` — understand agent usage patterns

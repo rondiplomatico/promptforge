@@ -19,6 +19,7 @@ Bash scripts triggered by Claude Code events. All share a common pattern:
 - Read JSON from stdin (`INPUT=$(cat)`)
 - Extract fields with `jq -r`
 - Resolve log directory (project-local `.claudicate/logs/` first, global `~/.claudicate/logs/` fallback)
+- Normalize `project_dir` paths (backslash → forward slash via `sed 's|\\|/|g'`) for Windows compatibility
 - Append one JSON line to `YYYY-MM-DD.jsonl`
 - Use `set -e` and exit 0
 
@@ -53,7 +54,7 @@ Analysis scripts co-located in `skills/claudicate/scripts/`:
 - `extract_friction.py` — pre-aggregates friction signals (denials, negations, contradictions, repeated clarifications) into JSON; excludes agent sessions by default (`--include-agents` to include)
 - `extract_permissions.py` — analyzes permissions across `settings.json` (shared) and `settings.local.json` (personal) for redundancies, anomalies, generalization opportunities, new candidates from tool usage/denial logs, and actual usage breakdown per wildcard pattern (for LLM-driven tightening analysis); tracks which file each entry comes from
 
-All analysis scripts support `--logs-dir` (repeatable), `--since`, auto-discover log directories, and `--project-filter DIR` to restrict analysis to entries from a specific project.
+All analysis scripts support `--logs-dir` (repeatable), `--since`, auto-discover log directories, and `--project-filter DIR` to restrict analysis to entries from a specific project. Path comparison in `--project-filter` normalizes backslashes to forward slashes for Windows compatibility.
 
 ### Unified Skill (`skills/claudicate/`)
 A single skill directory provides all claudicate workflows via `/claudicate <workflow>`. The `SKILL.md` router accepts arguments (`$0`) to dispatch to workflow files, or presents an interactive menu if no argument is given.
@@ -70,6 +71,7 @@ skills/claudicate/
     prescribe-bmad.md
     rehab.md
     tighten.md
+    clean.md
   scripts/              ← co-located Python analysis scripts
     extract_friction.py
     extract_permissions.py
@@ -80,10 +82,11 @@ skills/claudicate/
 Two workflow chains:
 - **User friction**: `diagnose` (generates friction report) → `prescribe` or `prescribe-bmad` (consumes friction report, cross-references with current config, suggests changes)
 - **Agent improvement**: `agent-xray` (agent session analysis) + friction report → `rehab` (suggests agent prompt, skill, and instruction improvements)
+- **Log management**: `clean` (delete logs and/or friction reports by scope, optionally filtered by date)
 - **Permission optimization**: `tighten` (analyzes both `settings.json` and `settings.local.json` for redundancies, consolidation, new candidates from tool usage/denial logs, and overly broad patterns with tightening suggestions based on actual usage; scope-aware with cross-scope redundancy detection; in project scope, also reads global settings; writes changes back to the correct file)
 
 ### Installation (`install.sh`, `uninstall.sh`)
-Interactive scripts (no CLI args). Install supports link (symlink) or copy mode. Data (hooks, logs, schema, config) goes to `.claudicate/`; skills go to `.claude/skills/`. Hook entries are registered in the appropriate settings file: **global installs** use `.claude/settings.json` (Claude Code doesn't support `settings.local.json` at the global `~/.claude/` level), **project installs** use `.claude/settings.local.json` (local, not committed — hooks use absolute paths and write to local `.claudicate/`). Writes `install.manifest` and `setup.yaml` with install metadata. For project installs in git repos, offers to add `.claudicate/` to `.gitignore` (warns about log data exposure if skipped). Uninstall reads manifest for clean removal.
+Interactive scripts (no CLI args). Install supports link (symlink) or copy mode. For project-specific installs, the initial session import filters to only the target project's sessions (`--project`). Data (hooks, logs, schema, config) goes to `.claudicate/`; skills go to `.claude/skills/`. Hook entries are registered in the appropriate settings file: **global installs** use `.claude/settings.json` (Claude Code doesn't support `settings.local.json` at the global `~/.claude/` level), **project installs** use `.claude/settings.local.json` (local, not committed — hooks use absolute paths and write to local `.claudicate/`). Writes `install.manifest` and `setup.yaml` with install metadata. For project installs in git repos, offers to add `.claudicate/` to `.gitignore` (warns about log data exposure if skipped). Uninstall reads manifest for clean removal.
 
 Installed layout:
 ```

@@ -6,7 +6,7 @@ set -e
 # --- Shared log directory resolution ---
 resolve_log_dir() {
   local project_dir
-  project_dir=$(echo "$INPUT" | jq -r '.workspace.project_dir // empty')
+  project_dir=$(echo "$INPUT" | jq -r '.workspace.project_dir // empty' | sed 's|\\|/|g')
   if [ -n "$project_dir" ] && [ -d "$project_dir/.claudicate/logs" ]; then
     echo "$project_dir/.claudicate/logs"
   elif [ -d "$HOME/.claudicate/logs" ]; then
@@ -33,7 +33,7 @@ LOG_FILE="$LOG_DIR/$(date +%Y-%m-%d).jsonl"
 
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty')
 CWD=$(echo "$INPUT" | jq -r '.cwd // empty')
-PROJECT_DIR=$(echo "$INPUT" | jq -r '.workspace.project_dir // empty')
+PROJECT_DIR=$(echo "$INPUT" | jq -r '.workspace.project_dir // empty' | sed 's|\\|/|g')
 TIMESTAMP=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
 
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty')

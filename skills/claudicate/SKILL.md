@@ -20,6 +20,7 @@ Usage: `/claudicate <workflow>` or `/claudicate` to choose interactively.
 | `prescribe-bmad` | Suggest improvements to BMAD agent and task definitions |
 | `rehab` | Suggest improvements to agent behavior and configuration |
 | `tighten` | Optimize settings.json permission patterns (redundancies, consolidation, new candidates) |
+| `clean` | Delete logs and/or friction reports to start fresh |
 
 ## Routing
 
